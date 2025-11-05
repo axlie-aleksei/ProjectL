@@ -1,10 +1,13 @@
 package org.axlie.projectl.launcher_project;
 
+
 import jakarta.persistence.*;
+
 
 @Entity
 public class Username {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     private String username;
 

@@ -1,17 +1,18 @@
 package org.axlie.projectl.launcher_project;
 
+
 import jakarta.persistence.*;
 
 @Entity
 public class Password {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-    private String Password;
+    private String password;
 
     @OneToOne
     @JoinColumn(name = "username_id")
     private Username username;
-
 
 
     public Username getUsername() {
@@ -22,17 +23,21 @@ public class Password {
         this.username = username;
     }
 
-    public Password(String password) {
-        Password = password;
+    public long getId() {
+        return id;
     }
 
-    public Password() {}
+    public void setId(long id) {
+        this.id = id;
+    }
 
     public String getPassword() {
-        return Password;
+        return password;
     }
 
     public void setPassword(String password) {
-        Password = password;
+        this.password = password;
     }
 }
+
+

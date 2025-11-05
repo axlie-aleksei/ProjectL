@@ -14,8 +14,10 @@ java {
     }
 }
 
+
 repositories {
     mavenCentral()
+    maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
 }
 
 dependencies {
@@ -24,6 +26,13 @@ dependencies {
     runtimeOnly 'com.mysql:mysql-connector-j'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+//    implementation 'org.springframework.boot:spring-boot-starter:2.7.15'
+//    implementation 'org.springframework.boot:spring-boot-starter-web:2.7.15'
+//    implementation 'com.github.paulcwarren:spring-content-fs-boot-starter:3.0.5'
+//    implementation 'com.github.paulcwarren:spring-content-rest-boot-starter:3.0.5'
+    implementation 'com.github.paulcwarren:spring-content-fs-boot-starter:3.0.17'
+    implementation 'com.github.paulcwarren:spring-content-rest-boot-starter:3.0.17'
+
 }
 
 tasks.named('test') {

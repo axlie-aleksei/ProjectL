@@ -1,0 +1,44 @@
+package org.axlie.projectl.launcher_project;
+
+import jakarta.annotation.Resource;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.util.UUID;
+
+@RestController
+@RequestMapping("/docs")
+public class DocController {
+    private final DocRepository docRepository;
+    private final DocStore docStore;
+
+    public DocController(DocRepository docRepository, DocStore docStore) {
+        this.docRepository = docRepository;
+        this.docStore = docStore;
+    }
+
+    @PostMapping("/upload")
+    public ResponseEntity<?> uploadDoc( @RequestParam("file") MultipartFile file) throws IOException {
+        Document doc = new Document();
+        doc.setMimeType(file.getContentType());
+        doc.setName(file.getOriginalFilename());
+        docStore.setContent(doc, file.getInputStream());
+        docRepository.save(doc);
+        return ResponseEntity.ok("uploaded");
+    }
+
+    @GetMapping("/download/{id}")
+    public ResponseEntity<InputStreamResource> downloadDoc(@PathVariable Long id) {
+        Document doc = docRepository.findById(id).orElseThrow();
+        InputStreamResource res = new InputStreamResource(docStore.getContent(doc));
+        return ResponseEntity.ok()
+                .header("Content-Type", doc.getMimeType())
+                .header("Content-Disposition", "attachment; filename=\"" + doc.getName() + "\"")
+                .body(res);
+
+    }
+
+}
