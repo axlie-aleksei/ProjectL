@@ -1,17 +1,21 @@
 package org.axlie.projectl.launcher_project;
 
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 public class AuthService {
 
-    PasswordRepository passwordRepository;
+    private final PasswordRepository passwordRepository;
+    private final UsernameRepository usernameRepository;
+    private final PasswordEncoder encoder = new BCryptPasswordEncoder();
+    private final JwtService jwtService;
 
-    UsernameRepository usernameRepository;
-
-    public AuthService(PasswordRepository passwordRepository, UsernameRepository usernameRepository) {
+    public AuthService(PasswordRepository passwordRepository, UsernameRepository usernameRepository, JwtService jwtService) {
         this.passwordRepository = passwordRepository;
         this.usernameRepository = usernameRepository;
+        this.jwtService = jwtService;
     }
 
     public String registration(String username, String password) {
@@ -23,22 +27,24 @@ public class AuthService {
         user.setUsername(username);
         usernameRepository.save(user);
 
+        String hashedPassword = encoder.encode(password);
+
         Password pass = new Password();
         pass.setUsername(user);
-        pass.setPassword(password);
+        pass.setPassword(hashedPassword);
         passwordRepository.save(pass);
 
         return "User registered successfully";
     }
 
-    public boolean login(String username, String password) {
+    public String login(String username, String password) {
         Username user = usernameRepository.findAll()
                 .stream()
                 .filter(userr -> userr.getUsername().equals(username))
                 .findFirst()
                 .orElse(null);
         if (user == null) {
-            return false; //user not found
+            return "usernotfound"; //user not found
         }
         Password pass = passwordRepository.findAll()
                 .stream()
@@ -46,10 +52,15 @@ public class AuthService {
                 .findFirst()
                 .orElse(null);
         if (pass == null) {
-            return false; //pass not found
+            return "password not null"; //pass not found
         }
 
-        return pass.getPassword().equals(password);
+        if (!encoder.matches(password, pass.getPassword())) {
+            return "wrong password";
+        }
+
+        return jwtService.generateToken(username);
+
     }
 
 }
