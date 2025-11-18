@@ -1,7 +1,8 @@
 package org.axlie.projectl.launcher_project;
 
-import jakarta.annotation.Resource;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -31,13 +32,15 @@ public class DocController {
     }
 
     @GetMapping("/download/{id}")
-    public ResponseEntity<InputStreamResource> downloadDoc(@PathVariable Long id) {
+    public ResponseEntity<InputStreamResource> downloadDoc(@PathVariable Long id) throws IOException {
         Document doc = docRepository.findById(id).orElseThrow();
-        InputStreamResource res = new InputStreamResource(docStore.getContent(doc));
+        Resource resource = docStore.getResource(doc);
         return ResponseEntity.ok()
-                .header("Content-Type", doc.getMimeType())
-                .header("Content-Disposition", "attachment; filename=\"" + doc.getName() + "\"")
-                .body(res);
+                .contentType(MediaType.parseMediaType(doc.getMimeType()))
+                .header("Content-Disposition", "attachment; filename=\"" +
+                        doc.getName())
+                .contentLength(resource.contentLength())
+                .body(new InputStreamResource(resource.getInputStream()));
 
     }
 
