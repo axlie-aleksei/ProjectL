@@ -3,12 +3,9 @@ package org.axlie.projectL;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 
 public class AuthClientFrame extends JFrame {
 
@@ -18,236 +15,199 @@ public class AuthClientFrame extends JFrame {
 
     public AuthClientFrame() {
         setTitle("Super Launcher Login");
-        setSize(700, 400);
+        setSize(600, 400);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
+        setResizable(true);
 
-        JLabel background = new JLabel(new ImageIcon(Objects.requireNonNull(getClass().getResource("/minecraft.png"))));
-        background.setLayout(new BorderLayout());
-        setContentPane(background);
 
-        JPanel formPanel = new JPanel(new GridBagLayout());
-        formPanel.setPreferredSize(new Dimension(330, 400));
-        formPanel.setOpaque(true);
-        formPanel.setBackground(new Color(0, 0, 0, 120));
+        JPanel mainPanel = new JPanel() {
+            Image bg = new ImageIcon(getClass().getResource("/minecraft.png")).getImage();
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                g.drawImage(bg, 0, 0, getWidth(), getHeight(), this);
+            }
+        };
+        mainPanel.setLayout(new BorderLayout());
+        setContentPane(mainPanel);
+
+
+        JPanel formPanel = new JPanel(new GridBagLayout()) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setColor(new Color(30, 30, 30, 180));
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        formPanel.setOpaque(false);
+        formPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
         GridBagConstraints c = new GridBagConstraints();
-        c.insets = new Insets(10, 15, 10, 15);
+        c.insets = new Insets(10, 10, 10, 10);
         c.fill = GridBagConstraints.HORIZONTAL;
+        c.anchor = GridBagConstraints.NORTHEAST;
 
-        Font labelFont = new Font("Arial", Font.BOLD, 14);
-        Font fieldFont = new Font("Arial", Font.PLAIN, 14);
 
-        JLabel usernameLabel = new JLabel("Username:");
-        usernameLabel.setFont(labelFont);
-        usernameLabel.setForeground(Color.WHITE);
+        JLabel title = new JLabel("Login / Register", SwingConstants.LEFT);
+        title.setFont(new Font("Arial", Font.BOLD, 22));
+        title.setForeground(Color.WHITE);
         c.gridx = 0;
         c.gridy = 0;
+        c.gridwidth = 2;
+        formPanel.add(title, c);
+        c.gridwidth = 1;
+
+
+        JLabel usernameLabel = new JLabel("Username:");
+        usernameLabel.setForeground(Color.WHITE);
+        c.gridx = 0;
+        c.gridy = 1;
         formPanel.add(usernameLabel, c);
 
         usernameField = new JTextField();
-        usernameField.setFont(fieldFont);
-        usernameField.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
-        usernameField.setBackground(new Color(20, 20, 20));
-        usernameField.setForeground(Color.WHITE);
-        c.gridy = 1;
+        styleField(usernameField);
+        usernameField.setOpaque(true);
+        c.gridx = 0;
+        c.gridy = 2;
+        c.gridwidth = 2;
         formPanel.add(usernameField, c);
+        c.gridwidth = 1;
+
 
         JLabel passwordLabel = new JLabel("Password:");
-        passwordLabel.setFont(labelFont);
         passwordLabel.setForeground(Color.WHITE);
-        c.gridy = 2;
+        c.gridx = 0;
+        c.gridy = 3;
         formPanel.add(passwordLabel, c);
 
-
-        JPanel passPanel = new JPanel(new BorderLayout());
-        passPanel.setOpaque(false);
-
         passwordField = new JPasswordField();
-        passwordField.setFont(fieldFont);
-        passwordField.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
-        passwordField.setBackground(new Color(20, 20, 20));
-        passwordField.setForeground(Color.WHITE);
-        passwordField.setEchoChar('•');
+        styleField(passwordField);
+        passwordField.setOpaque(true);
+        c.gridx = 0;
+        c.gridy = 4;
+        c.gridwidth = 2;
+        formPanel.add(passwordField, c);
+        c.gridwidth = 1;
 
-        JButton eyeButton = new JButton();
-        eyeButton.setBorder(null);
-        eyeButton.setContentAreaFilled(false);
-        eyeButton.setFocusPainted(false);
-        eyeButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        eyeButton.setPreferredSize(new Dimension(40, 30));
+
+        JButton showBtn = new JButton();
+        showBtn.setPreferredSize(new Dimension(40, 30));
+        showBtn.setFocusPainted(false);
+        showBtn.setContentAreaFilled(false);
+        showBtn.setBorder(null);
+        showBtn.setForeground(Color.WHITE);
 
         ImageIcon eyeOpen = new ImageIcon(getClass().getResource("/eye_open.png"));
         ImageIcon eyeClosed = new ImageIcon(getClass().getResource("/eye_closed.png"));
-        eyeButton.setIcon(eyeClosed);
+        showBtn.setIcon(eyeClosed);
 
-        eyeButton.addActionListener(ev -> {
-            if (passwordField.getEchoChar() == 0) {
-                passwordField.setEchoChar('•');
-                eyeButton.setIcon(eyeClosed);
+        showBtn.addActionListener(ev -> {
+            if (passwordField.getEchoChar() == '•') {
+                passwordField.setEchoChar((char) 0);
+                showBtn.setIcon(eyeOpen);
             } else {
-                passwordField.setEchoChar((char)0);
-                eyeButton.setIcon(eyeOpen);
+                passwordField.setEchoChar('•');
+                showBtn.setIcon(eyeClosed);
             }
         });
 
-        passPanel.add(passwordField, BorderLayout.CENTER);
-        passPanel.add(eyeButton, BorderLayout.EAST);
-
-        c.gridy = 3;
-        formPanel.add(passPanel, c);
-
-
-        JButton loginButton = new JButton("Login");
-        styleButton(loginButton);
-
-        JButton registerButton = new JButton("Register");
-        styleButton(registerButton);
-
-        JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 10, 0));
-        buttonPanel.setOpaque(false);
-        buttonPanel.add(loginButton);
-        buttonPanel.add(registerButton);
-
+        c.gridx = 2;
         c.gridy = 4;
-        c.insets = new Insets(20, 15, 10, 15);
-        formPanel.add(buttonPanel, c);
+        formPanel.add(showBtn, c);
 
 
-        statusLabel = new JLabel(" ", SwingConstants.CENTER);
-        statusLabel.setFont(labelFont);
-        statusLabel.setForeground(Color.WHITE);
-        statusLabel.setPreferredSize(new Dimension(200, 30));
+        JPanel buttonsPanel = new JPanel();
+        buttonsPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        buttonsPanel.setOpaque(true);
+        buttonsPanel.setBackground(new Color(92, 81, 81, 0));
 
+        JButton loginBtn = new JButton("Login");
+        styleButton(loginBtn);
+        loginBtn.addActionListener(this::handleLogin);
+
+        JButton registerBtn = new JButton("Register");
+        styleButton(registerBtn);
+        registerBtn.addActionListener(this::handleRegister);
+
+        buttonsPanel.add(loginBtn);
+        buttonsPanel.add(registerBtn);
+
+        c.gridx = 0;
         c.gridy = 5;
-        c.insets = new Insets(5, 15, 20, 15);
+        c.gridwidth = 2;
+        formPanel.add(buttonsPanel, c);
+        c.gridwidth = 1;
+
+
+        statusLabel = new JLabel(" ", SwingConstants.LEFT);
+        statusLabel.setForeground(Color.WHITE);
+        c.gridx = 0;
+        c.gridy = 6;
+        c.gridwidth = 2;
         formPanel.add(statusLabel, c);
 
-        JPanel rightWrapper = new JPanel(new BorderLayout());
-        rightWrapper.setOpaque(false);
-        rightWrapper.add(formPanel, BorderLayout.CENTER);
 
-        background.add(rightWrapper, BorderLayout.EAST);
-
-        loginButton.addActionListener(this::handleLogin);
-        registerButton.addActionListener(this::handleRegister);
+        mainPanel.add(formPanel, BorderLayout.EAST);
     }
 
+    private void styleField(JTextField field) {
+        field.setForeground(Color.WHITE);
+        field.setBackground(new Color(0, 0, 0)); // непрозрачный черный фон
+        field.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        field.setFont(new Font("Arial", Font.PLAIN, 14));
+        if (field instanceof JPasswordField) ((JPasswordField) field).setEchoChar('•');
+    }
 
     private void styleButton(JButton btn) {
         btn.setFont(new Font("Arial", Font.BOLD, 14));
         btn.setForeground(Color.WHITE);
         btn.setFocusPainted(false);
-        btn.setContentAreaFilled(false);
-
-        Color normal = new Color(93, 27, 191);
-        Color hover = new Color(123, 57, 221);
-
-        btn.setPreferredSize(new Dimension(120, 40));
-        btn.setBackground(normal);
-
-        btn.addMouseListener(new MouseAdapter() {
-            Timer timer;
-            float progress = 0f;
-
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                if (timer != null && timer.isRunning()) timer.stop();
-                timer = new Timer(15, ev -> {
-                    progress += 0.08f;
-                    if (progress > 1f) progress = 1f;
-                    btn.setBackground(interpolate(normal, hover, progress));
-                    btn.repaint();
-                    if (progress >= 1f) timer.stop();
-                });
-                timer.start();
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-                if (timer != null && timer.isRunning()) timer.stop();
-                timer = new Timer(15, ev -> {
-                    progress -= 0.08f;
-                    if (progress < 0f) progress = 0f;
-                    btn.setBackground(interpolate(normal, hover, progress));
-                    btn.repaint();
-                    if (progress <= 0f) timer.stop();
-                });
-                timer.start();
-            }
+        btn.setContentAreaFilled(true);
+        btn.setBackground(new Color(120, 30, 220));
+        btn.setOpaque(true);
+        btn.setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 20));
+        btn.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(MouseEvent evt) { btn.setBackground(new Color(150, 60, 240)); }
+            public void mouseExited(MouseEvent evt) { btn.setBackground(new Color(120, 30, 220)); }
         });
-
-        btn.setUI(new javax.swing.plaf.basic.BasicButtonUI() {
-            @Override
-            public void paint(Graphics g, JComponent c) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-                int w = btn.getWidth();
-                int h = btn.getHeight();
-                int arc = h;
-
-                g2.setColor(btn.getBackground());
-                g2.fillRoundRect(0, 0, w, h, arc, arc);
-
-                g2.setColor(Color.BLACK);
-                g2.drawRoundRect(0, 0, w - 1, h - 1, arc, arc);
-
-                super.paint(g2, c);
-                g2.dispose();
-            }
-        });
-    }
-
-    private Color interpolate(Color c1, Color c2, float t) {
-        t = Math.min(1f, Math.max(0f, t));
-        int r = (int)(c1.getRed() + (c2.getRed() - c1.getRed()) * t);
-        int g = (int)(c1.getGreen() + (c2.getGreen() - c1.getGreen()) * t);
-        int b = (int)(c1.getBlue() + (c2.getBlue() - c1.getBlue()) * t);
-        return new Color(r, g, b);
     }
 
     private String sendPost(String urlStr, String username, String password) {
         try {
             String fullUrl = urlStr + "?username=" + URLEncoder.encode(username, StandardCharsets.UTF_8)
                     + "&password=" + URLEncoder.encode(password, StandardCharsets.UTF_8);
-
             URL url = new URL(fullUrl);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
-
             BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
             String response = in.readLine();
             in.close();
             return response;
-
         } catch (IOException e) {
             return "Connection error";
-        }
-    }
-
-    private void handleLogin(ActionEvent e) {
-        String username = usernameField.getText();
-        String password = new String(passwordField.getPassword());
-
-        String response = sendPost("http://localhost:8080/api/login", username, password);
-
-        if (response.startsWith("eyJ")) {
-            statusLabel.setText("Login successful!");
-        } else {
-            statusLabel.setText("Login Failed");
         }
     }
 
     private void handleRegister(ActionEvent e) {
         String username = usernameField.getText();
         String password = new String(passwordField.getPassword());
-        String response = sendPost("http://localhost:8080/api/registration", username, password);
+        statusLabel.setText(sendPost("http://localhost:8080/api/registration", username, password));
+    }
 
-        statusLabel.setText(response);
+    private void handleLogin(ActionEvent e) {
+        String username = usernameField.getText();
+        String password = new String(passwordField.getPassword());
+        statusLabel.setText(sendPost("http://localhost:8080/api/login", username, password));
     }
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new AuthClientFrame().setVisible(true));
     }
 }
+
+
+
