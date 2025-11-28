@@ -8,7 +8,6 @@ import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.List;
 
 import net.lingala.zip4j.ZipFile;
@@ -38,20 +37,16 @@ public class LaunchMine extends JFrame {
         String destination = "C:\\downloads";
         Path path = Paths.get(destination + "\\.minecraft");
         if (Files.exists(path)) {
-            actButton.addActionListener(new ActionListener() {
+            actButton.addActionListener(e -> {
+                String path1 = "C:\\downloads\\.minecraft\\launchers\\forge\\start_forge_1.16.5.bat\\";
+                ProcessBuilder pb = new ProcessBuilder(path1);
 
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    String path = "C:\\downloads\\.minecraft\\launchers\\forge\\start_forge_1.16.5.bat\\";
-                    ProcessBuilder pb = new ProcessBuilder(path);
+                try {
+                    pb.start();
+                    System.exit(0);
 
-                    try {
-                        Process process = pb.start();
-                        System.exit(0);
-
-                    } catch (IOException a) {
-                        a.printStackTrace();
-                    }
+                } catch (IOException a) {
+                    a.printStackTrace();
                 }
             });
         } else {
@@ -139,7 +134,7 @@ public class LaunchMine extends JFrame {
                     ProcessBuilder pb = new ProcessBuilder(path);
 
                     try {
-                        Process process = pb.start();
+                        pb.start();
                         System.exit(0);
 
                     } catch (IOException a) {
