@@ -18,7 +18,6 @@ public class LaunchMine extends JFrame {
     private final JProgressBar progBar;
 
     public LaunchMine() {
-
         setTitle("Axlie Project L");
         setSize(400, 150);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
