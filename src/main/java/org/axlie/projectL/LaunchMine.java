@@ -2,6 +2,7 @@ package org.axlie.projectL;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
 import java.net.URL;
@@ -11,6 +12,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
+
+import net.lingala.zip4j.ZipFile;
 
 public class LaunchMine extends JFrame {
 
@@ -25,7 +28,7 @@ public class LaunchMine extends JFrame {
         setLocationRelativeTo(null);
         setLayout(new BorderLayout(10, 10));
 
-        actButton = new JButton("download");
+        actButton = new JButton("Launch");
         progBar = new JProgressBar(0, 100);
         progBar.setStringPainted(true);
         progBar.setVisible(true);
@@ -34,8 +37,30 @@ public class LaunchMine extends JFrame {
         center.add(progBar, BorderLayout.WEST);
         center.add(actButton);
         add(center, BorderLayout.EAST);
+        String destination = "C:\\downloads";
+        Path path = Paths.get(destination + "\\.minecraft");
+        if (Files.exists(path)) {
+            actButton.addActionListener(new ActionListener() {
 
-        actButton.addActionListener(e -> buttonDo());
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    String path = "C:\\downloads\\.minecraft\\launchers\\forge\\start_forge_1.16.5.bat\\";
+                    ProcessBuilder pb = new ProcessBuilder(path);
+
+                    try {
+                        Process process = pb.start();
+                        System.exit(0);
+
+                    } catch (IOException a) {
+                        a.printStackTrace();
+                    }
+                }
+            });
+        } else {
+            actButton.setText("download");
+            actButton.addActionListener(e -> buttonDo());
+        }
+
     }
 
     public void buttonDo() {
@@ -44,18 +69,20 @@ public class LaunchMine extends JFrame {
 
         SwingWorker<Void, Integer> worker = new SwingWorker<>() {
 
-
             @Override
-            protected Void doInBackground() throws Exception {
+            protected Void doInBackground() throws IOException {
 
-                URL url = new URL("http://localhost:8080/docs/download/4");
+                URL url = new URL("http://localhost:8080/docs/download/5");
                 InputStream in = url.openStream();
                 URLConnection conn = url.openConnection();
 
+                String source = "C:\\downloads\\.minecraft.zip\\";
+                String destination = "C:\\downloads";
                 String disposition = conn.getHeaderField("Content-Disposition");
                 String fileName = "downloaded_file.bin";
-                if (disposition != null ) {
-                    fileName = disposition.split("filename=")[1].replace("\"","").trim();
+
+                if (disposition != null) {
+                    fileName = disposition.split("filename=")[1].replace("\"", "").trim();
                 }
                 Path outputDir = Paths.get("C:\\downloads");
                 Files.createDirectories(outputDir);
@@ -63,7 +90,7 @@ public class LaunchMine extends JFrame {
                 Path output = outputDir.resolve(fileName);
 
                 try (BufferedInputStream bis = new BufferedInputStream(in);
-                OutputStream out = new FileOutputStream(output.toFile())) {
+                     OutputStream out = new FileOutputStream(output.toFile())) {
 
                     byte[] buffer = new byte[4096];
                     int read;
@@ -74,14 +101,25 @@ public class LaunchMine extends JFrame {
                         out.write(buffer, 0, read);
                         total += read;
 
-                        if (length > 0){
+                        if (length > 0) {
                             int percent = (int) ((total * 100) / length);
                             publish(percent);
-//                        }else {
-//                            publish((int) (total % 100));
                         }
+
                     }
 
+                }
+
+                Path zipFilePath = Paths.get(source);
+                if (Files.exists(zipFilePath)) {
+                    ZipFile zipFile = new ZipFile(source);
+                    zipFile.extractAll(destination);
+                    zipFile.removeFile(source);
+
+                    Files.delete(zipFilePath);
+
+                } else {
+                    System.err.println("Файл не найден по пути: " + source);
                 }
 
                 return null;
@@ -97,6 +135,19 @@ public class LaunchMine extends JFrame {
                 progBar.setValue(100);
                 actButton.setText("Launch");
                 actButton.setEnabled(true);
+
+                actButton.addActionListener(e -> {
+                    String path = "C:\\downloads\\.minecraft\\launchers\\forge\\start_forge_1.16.5.bat\\";
+                    ProcessBuilder pb = new ProcessBuilder(path);
+
+                    try {
+                        Process process = pb.start();
+                        System.exit(0);
+
+                    } catch (IOException a) {
+                        a.printStackTrace();
+                    }
+                });
             }
 
         };
