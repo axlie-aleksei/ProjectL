@@ -14,16 +14,20 @@ import net.lingala.zip4j.ZipFile;
 
 public class LaunchMine extends JFrame {
 
+    private final JButton settings;
     private final JButton actButton;
     private final JProgressBar progBar;
+    String destination = System.getenv("APPDATA").toString();
 
     public LaunchMine() {
+
         setTitle("Axlie Project L");
         setSize(400, 150);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout(10, 10));
 
+        settings = new JButton("Download Path Change");
         actButton = new JButton("Launch");
         progBar = new JProgressBar(0, 100);
         progBar.setStringPainted(true);
@@ -32,12 +36,12 @@ public class LaunchMine extends JFrame {
         JPanel center = new JPanel(new BorderLayout());
         center.add(progBar, BorderLayout.WEST);
         center.add(actButton);
+        center.add(settings, BorderLayout.EAST);
         add(center, BorderLayout.EAST);
-        String destination = "C:\\downloads";
         Path path = Paths.get(destination + "\\.minecraft");
         if (Files.exists(path)) {
             actButton.addActionListener(e -> {
-                String path1 = "C:\\downloads\\.minecraft\\launchers\\forge\\start_forge_1.16.5.bat\\";
+                String path1 = destination + "\\.minecraft\\launchers\\forge\\start_forge_1.16.5.bat\\";
                 ProcessBuilder pb = new ProcessBuilder(path1);
 
                 try {
@@ -52,6 +56,13 @@ public class LaunchMine extends JFrame {
             actButton.setText("download");
             actButton.addActionListener(e -> buttonDo());
         }
+        settings.addActionListener(e -> pathServis());
+        }
+
+    public void pathServis(){
+        MainPane pane = new MainPane();
+        String pathh = pane.showDialog().toString();
+        destination = pathh;
 
     }
 
@@ -64,19 +75,26 @@ public class LaunchMine extends JFrame {
             @Override
             protected Void doInBackground() throws IOException {
 
-                URL url = new URL("http://localhost:8080/docs/download/5");
+                List<String> Urls = List.of(
+                        "http://localhost:8080/docs/download/5",
+                        "http://localhost:8080/docs/download/5",
+                        "http://localhost:8080/docs/download/5",
+                        "http://localhost:8080/docs/download/5",
+                        "http://localhost:8080/docs/download/5"
+                );
+
+                URL url = new URL(Urls.stream().toString());
                 InputStream in = url.openStream();
                 URLConnection conn = url.openConnection();
 
-                String source = "C:\\downloads\\.minecraft.zip\\";
-                String destination = "C:\\downloads";
+                String source = destination + "\\.minecraft.zip\\";
                 String disposition = conn.getHeaderField("Content-Disposition");
                 String fileName = "downloaded_file.bin";
 
                 if (disposition != null) {
                     fileName = disposition.split("filename=")[1].replace("\"", "").trim();
                 }
-                Path outputDir = Paths.get("C:\\downloads");
+                Path outputDir = Paths.get(destination);
                 Files.createDirectories(outputDir);
 
                 Path output = outputDir.resolve(fileName);
@@ -129,7 +147,7 @@ public class LaunchMine extends JFrame {
                 actButton.setEnabled(true);
 
                 actButton.addActionListener(e -> {
-                    String path = "C:\\downloads\\.minecraft\\launchers\\forge\\start_forge_1.16.5.bat\\";
+                    String path = destination + "\\.minecraft\\launchers\\forge\\start_forge_1.16.5.bat\\";
                     ProcessBuilder pb = new ProcessBuilder(path);
 
                     try {
