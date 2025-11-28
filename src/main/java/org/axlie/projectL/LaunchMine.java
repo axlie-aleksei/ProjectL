@@ -2,7 +2,7 @@ package org.axlie.projectL;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionListener;
 import java.io.*;
 import java.net.*;
 import java.nio.file.*;
@@ -32,41 +32,19 @@ public class LaunchMine extends JFrame {
         mainPanel.setLayout(new BorderLayout());
         setContentPane(mainPanel);
 
-        JPanel formPanel = new JPanel(new GridBagLayout()) {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setColor(new Color(30, 30, 30, 180));
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
-                g2.dispose();
-                super.paintComponent(g);
-            }
-        };
-        formPanel.setOpaque(false);
-        formPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-
-        JPanel bottomPanel = new JPanel();
-        bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.Y_AXIS));
-        bottomPanel.setOpaque(false);
-
+        actButton = new JButton("download");
         progBar = new JProgressBar(0, 100);
         progBar.setStringPainted(true);
         progBar.setVisible(false);
         progBar.setPreferredSize(new Dimension(300, 20));
         bottomPanel.add(progBar);
 
-        actButton = new JButton(new ImageIcon(Objects.requireNonNull(getClass().getResource("/DOWNLOAD.png"))));
-        actButton.setPreferredSize(new Dimension(200, 40));
-        actButton.setFocusPainted(false);
-        actButton.setContentAreaFilled(false);
-        actButton.setBorder(null);
+        JPanel center = new JPanel(new BorderLayout());
+        center.add(progBar, BorderLayout.WEST);
+        center.add(actButton);
+        add(center, BorderLayout.EAST);
+
         actButton.addActionListener(e -> buttonDo());
-        bottomPanel.add(Box.createVerticalStrut(10));
-        bottomPanel.add(actButton);
-
-        formPanel.add(bottomPanel);
-
-        mainPanel.add(formPanel, BorderLayout.CENTER);
     }
 
     public void buttonDo() {
@@ -74,16 +52,19 @@ public class LaunchMine extends JFrame {
         progBar.setVisible(true);
 
         SwingWorker<Void, Integer> worker = new SwingWorker<>() {
+
+
             @Override
             protected Void doInBackground() throws Exception {
+
                 URL url = new URL("http://localhost:8080/docs/download/4");
                 InputStream in = url.openStream();
                 URLConnection conn = url.openConnection();
 
                 String disposition = conn.getHeaderField("Content-Disposition");
                 String fileName = "downloaded_file.bin";
-                if (disposition != null) {
-                    fileName = disposition.split("filename=")[1].replace("\"", "").trim();
+                if (disposition != null ) {
+                    fileName = disposition.split("filename=")[1].replace("\"","").trim();
                 }
 
                 Path outputDir = Paths.get("C:\\downloads");
@@ -108,6 +89,7 @@ public class LaunchMine extends JFrame {
                             publish(percent);
                         }
                     }
+
                 }
 
                 return null;
