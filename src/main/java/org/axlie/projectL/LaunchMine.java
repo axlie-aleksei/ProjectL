@@ -2,12 +2,18 @@ package org.axlie.projectL;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
-import java.net.*;
-import java.nio.file.*;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
-import java.util.Objects;
+
+import net.lingala.zip4j.ZipFile;
 
 public class LaunchMine extends JFrame {
 
@@ -15,36 +21,46 @@ public class LaunchMine extends JFrame {
     private final JProgressBar progBar;
 
     public LaunchMine() {
+
         setTitle("Axlie Project L");
-        setSize(600, 400);
+        setSize(400, 150);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-        setResizable(true);
+        setLayout(new BorderLayout(10, 10));
 
-        JPanel mainPanel = new JPanel() {
-            Image bg = new ImageIcon(getClass().getResource("/minecraft.png")).getImage();
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                g.drawImage(bg, 0, 0, getWidth(), getHeight(), this);
-            }
-        };
-        mainPanel.setLayout(new BorderLayout());
-        setContentPane(mainPanel);
-
-        actButton = new JButton("download");
+        actButton = new JButton("Launch");
         progBar = new JProgressBar(0, 100);
         progBar.setStringPainted(true);
-        progBar.setVisible(false);
-        progBar.setPreferredSize(new Dimension(300, 20));
-        bottomPanel.add(progBar);
+        progBar.setVisible(true);
 
         JPanel center = new JPanel(new BorderLayout());
         center.add(progBar, BorderLayout.WEST);
         center.add(actButton);
         add(center, BorderLayout.EAST);
+        String destination = "C:\\downloads";
+        Path path = Paths.get(destination + "\\.minecraft");
+        if (Files.exists(path)) {
+            actButton.addActionListener(new ActionListener() {
 
-        actButton.addActionListener(e -> buttonDo());
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    String path = "C:\\downloads\\.minecraft\\launchers\\forge\\start_forge_1.16.5.bat\\";
+                    ProcessBuilder pb = new ProcessBuilder(path);
+
+                    try {
+                        Process process = pb.start();
+                        System.exit(0);
+
+                    } catch (IOException a) {
+                        a.printStackTrace();
+                    }
+                }
+            });
+        } else {
+            actButton.setText("download");
+            actButton.addActionListener(e -> buttonDo());
+        }
+
     }
 
     public void buttonDo() {
@@ -53,20 +69,21 @@ public class LaunchMine extends JFrame {
 
         SwingWorker<Void, Integer> worker = new SwingWorker<>() {
 
-
             @Override
-            protected Void doInBackground() throws Exception {
+            protected Void doInBackground() throws IOException {
 
-                URL url = new URL("http://localhost:8080/docs/download/4");
+                URL url = new URL("http://localhost:8080/docs/download/5");
                 InputStream in = url.openStream();
                 URLConnection conn = url.openConnection();
 
+                String source = "C:\\downloads\\.minecraft.zip\\";
+                String destination = "C:\\downloads";
                 String disposition = conn.getHeaderField("Content-Disposition");
                 String fileName = "downloaded_file.bin";
-                if (disposition != null ) {
-                    fileName = disposition.split("filename=")[1].replace("\"","").trim();
-                }
 
+                if (disposition != null) {
+                    fileName = disposition.split("filename=")[1].replace("\"", "").trim();
+                }
                 Path outputDir = Paths.get("C:\\downloads");
                 Files.createDirectories(outputDir);
 
@@ -88,8 +105,21 @@ public class LaunchMine extends JFrame {
                             int percent = (int) ((total * 100) / length);
                             publish(percent);
                         }
+
                     }
 
+                }
+
+                Path zipFilePath = Paths.get(source);
+                if (Files.exists(zipFilePath)) {
+                    ZipFile zipFile = new ZipFile(source);
+                    zipFile.extractAll(destination);
+                    zipFile.removeFile(source);
+
+                    Files.delete(zipFilePath);
+
+                } else {
+                    System.err.println("Файл не найден по пути: " + source);
                 }
 
                 return null;
@@ -105,16 +135,28 @@ public class LaunchMine extends JFrame {
                 progBar.setValue(100);
                 actButton.setText("Launch");
                 actButton.setEnabled(true);
-            }
-        };
 
+                actButton.addActionListener(e -> {
+                    String path = "C:\\downloads\\.minecraft\\launchers\\forge\\start_forge_1.16.5.bat\\";
+                    ProcessBuilder pb = new ProcessBuilder(path);
+
+                    try {
+                        Process process = pb.start();
+                        System.exit(0);
+
+                    } catch (IOException a) {
+                        a.printStackTrace();
+                    }
+                });
+            }
+
+        };
         worker.execute();
     }
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new LaunchMine().setVisible(true));
     }
+
 }
-
-
 
