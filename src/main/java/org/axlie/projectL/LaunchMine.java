@@ -9,18 +9,22 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Locale;
+import java.util.prefs.Preferences;
 
 import net.lingala.zip4j.ZipFile;
+import net.lingala.zip4j.model.FileHeader;
 
 public class LaunchMine extends JFrame {
 
     private final JButton settings;
     private final JButton actButton;
     private final JProgressBar progBar;
-    String destination = System.getenv("APPDATA").toString();
+    String destination = System.getenv("APPDATA");
 
     public LaunchMine() {
-
+        Preferences prefs = Preferences.userRoot().node("AxlieProjectL");
+        destination = prefs.get("minecraftPath", System.getenv("APPDATA"));
         setTitle("Axlie Project L");
         setSize(400, 150);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -41,7 +45,7 @@ public class LaunchMine extends JFrame {
         Path path = Paths.get(destination + "\\.minecraft");
         if (Files.exists(path)) {
             actButton.addActionListener(e -> {
-                String path1 = destination + "\\.minecraft\\launchers\\forge\\start_forge_1.16.5.bat\\";
+                String path1 = destination + "\\.minecraft\\launchers\\start_forge_1.16.5.bat\\";
                 ProcessBuilder pb = new ProcessBuilder(path1);
 
                 try {
@@ -57,13 +61,85 @@ public class LaunchMine extends JFrame {
             actButton.addActionListener(e -> buttonDo());
         }
         settings.addActionListener(e -> pathServis());
+    }
+
+    public static void delFolder(File folder) {
+        if (!folder.exists()) return;
+
+        File[] files = folder.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (file.isDirectory()) {
+                    delFolder(file);
+                } else {
+                    file.delete();
+                }
+            }
         }
+        folder.delete();
+    }
 
-    public void pathServis(){
-        MainPane pane = new MainPane();
-        String pathh = pane.showDialog().toString();
-        destination = pathh;
+    public void pathServis() {
+        Path path = Paths.get(destination);
+        if (Files.exists(path)) {
+            int result = JOptionPane.showConfirmDialog(
+                    null,
+                    "Are you sure you want to change the Minecraft installation location? (Your saves will be lost.)",
+                    "Confirmation",
+                    JOptionPane.YES_NO_OPTION
+            );
+            if (result == JOptionPane.YES_OPTION) {
+                MainPane pane = new MainPane();
+                String newPath = pane.showDialog();
 
+                if (newPath == null || newPath.isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "path not selected");
+                    return;
+                }
+
+
+                String oldPath = destination;
+                destination = newPath;
+                File oldMine = new File(oldPath + "\\.minecraft");
+
+                Preferences prefs = Preferences.userRoot().node("AxlieProjectL");
+                prefs.put("minecraftPath", newPath);
+
+                if (oldMine.exists()) {
+                    delFolder(oldMine);
+                }
+
+                actButton.setText("Download");
+                actButton.addActionListener(e -> {
+                    buttonDo();
+                });
+                JOptionPane.showMessageDialog(this, "path changed now you can download it again");
+
+            }
+        } else {
+            MainPane pane = new MainPane();
+            String newPath = pane.showDialog();
+
+            if (newPath == null || newPath.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "path not selected");
+                return;
+            }
+
+
+            String oldPath = destination;
+            destination = newPath;
+            Path oldMine = Paths.get(oldPath + "\\.minecraft");
+
+            Preferences prefs = Preferences.userRoot().node("AxlieProjectL");
+            prefs.put("minecraftPath", newPath);
+
+            if (Files.exists(oldMine)) {
+                try {
+                    Files.delete(oldMine);
+                } catch (IOException e) {
+                }
+            }
+        }
     }
 
     public void buttonDo() {
@@ -75,61 +151,61 @@ public class LaunchMine extends JFrame {
             @Override
             protected Void doInBackground() throws IOException {
 
-                List<String> Urls = List.of(
+                List<String> urls = List.of(
+                        "http://localhost:8080/docs/download/6",
                         "http://localhost:8080/docs/download/5",
-                        "http://localhost:8080/docs/download/5",
-                        "http://localhost:8080/docs/download/5",
-                        "http://localhost:8080/docs/download/5",
-                        "http://localhost:8080/docs/download/5"
+                        "http://localhost:8080/docs/download/4",
+                        "http://localhost:8080/docs/download/3"
                 );
 
-                URL url = new URL(Urls.stream().toString());
-                InputStream in = url.openStream();
-                URLConnection conn = url.openConnection();
-
-                String source = destination + "\\.minecraft.zip\\";
-                String disposition = conn.getHeaderField("Content-Disposition");
-                String fileName = "downloaded_file.bin";
-
-                if (disposition != null) {
-                    fileName = disposition.split("filename=")[1].replace("\"", "").trim();
-                }
                 Path outputDir = Paths.get(destination);
                 Files.createDirectories(outputDir);
 
-                Path output = outputDir.resolve(fileName);
+                int allFiles = urls.size();
+                int fileCount = 0;
 
-                try (BufferedInputStream bis = new BufferedInputStream(in);
-                     OutputStream out = new FileOutputStream(output.toFile())) {
+                for (String link : urls) {
+                    fileCount++;
 
-                    byte[] buffer = new byte[4096];
-                    int read;
-                    long total = 0;
 
-                    long length = url.openConnection().getContentLength();
-                    while ((read = bis.read(buffer)) != -1) {
-                        out.write(buffer, 0, read);
-                        total += read;
+                    URL url = new URL(link);
+                    URLConnection conn = url.openConnection();
 
-                        if (length > 0) {
-                            int percent = (int) ((total * 100) / length);
-                            publish(percent);
-                        }
+                    String disposition = conn.getHeaderField("Content-Disposition");
+                    String fileName = "";
 
+                    if (disposition != null) {
+                        fileName = disposition.split("filename=")[1].replace("\"", "").trim();
                     }
 
-                }
 
-                Path zipFilePath = Paths.get(source);
-                if (Files.exists(zipFilePath)) {
-                    ZipFile zipFile = new ZipFile(source);
-                    zipFile.extractAll(destination);
-                    zipFile.removeFile(source);
+                    Path output = outputDir.resolve(fileName);
 
-                    Files.delete(zipFilePath);
+                    try (InputStream in = new BufferedInputStream(conn.getInputStream());
+                         OutputStream out = new FileOutputStream(output.toFile())) {
 
-                } else {
-                    System.err.println("Файл не найден по пути: " + source);
+                        byte[] buffer = new byte[4096];
+                        int read;
+                        long total = 0;
+                        long length = conn.getContentLengthLong();
+
+                        while ((read = in.read(buffer)) != -1) {
+                            out.write(buffer, 0, read);
+                            total += read;
+
+                            if (length > 0) {
+                                int percent = (int) (((fileCount - 1 + (double) total / length) / allFiles) * 100);
+                                publish(percent);
+                            }
+
+                        }
+                        if (fileName.toLowerCase().endsWith(".zip")) {
+                            ZipFile zipFile = new ZipFile(output.toFile());
+                            zipFile.extractAll(destination);
+                            zipFile.close();
+                            Files.deleteIfExists(output);
+                        }
+                    }
                 }
 
                 return null;
@@ -147,7 +223,8 @@ public class LaunchMine extends JFrame {
                 actButton.setEnabled(true);
 
                 actButton.addActionListener(e -> {
-                    String path = destination + "\\.minecraft\\launchers\\forge\\start_forge_1.16.5.bat\\";
+                    String path = destination + "\\.minecraft\\launchers\\start_forge_1.16.5.bat\\";
+                    System.out.println(path);
                     ProcessBuilder pb = new ProcessBuilder(path);
 
                     try {
