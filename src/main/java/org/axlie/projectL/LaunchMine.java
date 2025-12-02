@@ -21,8 +21,10 @@ public class LaunchMine extends JFrame {
     private final JButton actButton;
     private final JProgressBar progBar;
     String destination = System.getenv("APPDATA");
+    long modLen;
+    long assetLen;
 
-    public LaunchMine() {
+    public LaunchMine() throws IOException {
         Preferences prefs = Preferences.userRoot().node("AxlieProjectL");
         destination = prefs.get("minecraftPath", System.getenv("APPDATA"));
         setTitle("Axlie Project L");
@@ -30,7 +32,32 @@ public class LaunchMine extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout(10, 10));
+        if (Files.exists(Paths.get(destination + "\\.minecraft"))) {
+            long modLen = Files.walk(Paths.get(destination, "\\.minecraft", "mods"))
+                    .filter(Files::isRegularFile)
+                    .mapToLong(p -> {
+                        try {
+                            return Files.size(p);
+                        } catch (IOException e) {
+                            return 0;
+                        }
+                    })
+                    .sum();
 
+            long assetLen = Files.walk(Paths.get(destination, "\\.minecraft", "assets"))
+                    .filter(Files::isRegularFile)
+                    .mapToLong(p -> {
+                        try {
+                            return Files.size(p);
+                        } catch (IOException e) {
+                            return 0;
+                        }
+                    })
+                    .sum();
+        }
+
+        System.out.println(modLen);
+        System.out.println(assetLen);
         settings = new JButton("Download Path Change");
         actButton = new JButton("Launch");
         progBar = new JProgressBar(0, 100);
@@ -46,16 +73,26 @@ public class LaunchMine extends JFrame {
         if (Files.exists(path)) {
             actButton.addActionListener(e -> {
                 String path1 = destination + "\\.minecraft\\launchers\\start_forge_1.16.5.bat\\";
-                ProcessBuilder pb = new ProcessBuilder(path1);
+                if (modLen == 24815086) {
+                    if (assetLen == 334221916) {
 
-                try {
-                    pb.start();
-                    System.exit(0);
+                        ProcessBuilder pb = new ProcessBuilder(path1);
 
-                } catch (IOException a) {
-                    a.printStackTrace();
+                        try {
+                            pb.start();
+                            System.exit(0);
+
+                        } catch (IOException a) {
+                            a.printStackTrace();
+                        }
+                    }
+                }else{
+                    JOptionPane.showMessageDialog(null,"delete all mods or custom assets from your minecraft folder or reinstall minecraft");
+
                 }
+
             });
+
         } else {
             actButton.setText("download");
             actButton.addActionListener(e -> buttonDo());
@@ -123,7 +160,7 @@ public class LaunchMine extends JFrame {
             if (newPath == null || newPath.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "path not selected");
                 return;
-            }
+                }
 
 
             String oldPath = destination;
@@ -152,10 +189,7 @@ public class LaunchMine extends JFrame {
             protected Void doInBackground() throws IOException {
 
                 List<String> urls = List.of(
-                        "http://localhost:8080/docs/download/6",
-                        "http://localhost:8080/docs/download/5",
-                        "http://localhost:8080/docs/download/4",
-                        "http://localhost:8080/docs/download/3"
+                        "http://localhost:8080/docs/download/1"
                 );
 
                 Path outputDir = Paths.get(destination);
@@ -203,8 +237,11 @@ public class LaunchMine extends JFrame {
                             ZipFile zipFile = new ZipFile(output.toFile());
                             zipFile.extractAll(destination);
                             zipFile.close();
-                            Files.deleteIfExists(output);
                         }
+                    }
+                    Path mineZip = Paths.get(destination + "\\.minecraft.zip");
+                    if (fileName.toLowerCase().endsWith(".zip")) {
+                        Files.deleteIfExists(mineZip);
                     }
                 }
 
@@ -225,24 +262,44 @@ public class LaunchMine extends JFrame {
                 actButton.addActionListener(e -> {
                     String path = destination + "\\.minecraft\\launchers\\start_forge_1.16.5.bat\\";
                     System.out.println(path);
-                    ProcessBuilder pb = new ProcessBuilder(path);
+                    Path modpath;
+                    System.out.println(assetLen);
+                    System.out.println(modLen);
+                    if (modLen == 24815086) {
+                        if (assetLen == 334221916) {
 
-                    try {
-                        pb.start();
-                        System.exit(0);
 
-                    } catch (IOException a) {
-                        a.printStackTrace();
+                            ProcessBuilder pb = new ProcessBuilder(path);
+
+                            try {
+                                pb.start();
+                                System.exit(0);
+
+                            } catch (IOException a) {
+                                a.printStackTrace();
+                            }
+                        }
+                    }else{
+                        JOptionPane.showMessageDialog(null,"delete all mods or custom assets from your minecraft folder");
                     }
+
                 });
+
             }
+
 
         };
         worker.execute();
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new LaunchMine().setVisible(true));
+        SwingUtilities.invokeLater(() -> {
+            try {
+                new LaunchMine().setVisible(true);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
 }

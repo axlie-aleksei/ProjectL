@@ -16,15 +16,14 @@ public class MainPane extends JPanel {
 
             setLayout(new BorderLayout());
 
-            // --- FILE CHOOSER ---
             fileChooser = new JFileChooser();
             fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
             fileChooser.setApproveButtonText("delete");
 
-            // Удаляем стандартные кнопки
+            // delete old buttons
             removeButtons(fileChooser);
 
-            // Слушаем список файлов
+            // file list
             JList list = findFirstChildren(fileChooser, JList.class);
             list.addListSelectionListener(e -> {
                 if (!e.getValueIsAdjusting()) {
@@ -37,7 +36,7 @@ public class MainPane extends JPanel {
 
             add(fileChooser, BorderLayout.CENTER);
 
-            // --- КНОПКИ ВНИЗУ ---
+            // bottom buttons(select cancel)
             JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 
             JButton select = new JButton("Select");
@@ -48,13 +47,13 @@ public class MainPane extends JPanel {
 
             add(bottom, BorderLayout.SOUTH);
 
-            // Логика кнопки Select
+            // Select button
             select.addActionListener(e -> {
                 Window w = SwingUtilities.getWindowAncestor(MainPane.this);
-                w.dispose(); // закрываем окно
+                w.dispose(); // close
             });
 
-            // Логика кнопки Cancel
+            // cancel button
             cancel.addActionListener(e -> {
                 resultPath = null;
                 Window w = SwingUtilities.getWindowAncestor(MainPane.this);
@@ -62,7 +61,7 @@ public class MainPane extends JPanel {
             });
         }
 
-        // --- Метод, который показывает окно и ВОЗВРАЩАЕТ path ---
+        //show frame and return path
         public String showDialog() {
 
             JDialog dialog = new JDialog((Frame) null, "Select file", true);
@@ -74,7 +73,7 @@ public class MainPane extends JPanel {
             return resultPath;
         }
 
-        // Удаление кнопок JFileChooser
+        //buttons delete
         protected void removeButtons(Container container) {
             for (Component child : container.getComponents()) {
                 if (child instanceof JButton btn) {
@@ -90,10 +89,13 @@ public class MainPane extends JPanel {
             }
         }
 
-        // Рекурсивный поиск JList внутри JFileChooser
+        // recursive search T = Inside the comp component, find the first child element of type T
         public <T extends Component> T findFirstChildren(JComponent comp, Class<T> clazz) {
             for (Component c : comp.getComponents()) {
+                //Is this component the correct type?
                 if (clazz.isInstance(c)) return clazz.cast(c);
+                //If the component is a JComponent, then we search inside it recursively
+                //Если компонент является JComponent, то мы ищем внутри него рекурсивно.
                 if (c instanceof JComponent sub) {
                     T child = findFirstChildren(sub, clazz);
                     if (child != null) return child;
