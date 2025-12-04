@@ -21,8 +21,8 @@ public class LaunchMine extends JFrame {
     private final JButton actButton;
     private final JProgressBar progBar;
     String destination = System.getenv("APPDATA");
-    long modLen;
-    long assetLen;
+    private long modLen;
+    private long assetLen;
 
     public LaunchMine() throws IOException {
         Preferences prefs = Preferences.userRoot().node("AxlieProjectL");
@@ -32,30 +32,6 @@ public class LaunchMine extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout(10, 10));
-        if (Files.exists(Paths.get(destination + "\\.minecraft"))) {
-            long modLen = Files.walk(Paths.get(destination, "\\.minecraft", "mods"))
-                    .filter(Files::isRegularFile)
-                    .mapToLong(p -> {
-                        try {
-                            return Files.size(p);
-                        } catch (IOException e) {
-                            return 0;
-                        }
-                    })
-                    .sum();
-
-            long assetLen = Files.walk(Paths.get(destination, "\\.minecraft", "assets"))
-                    .filter(Files::isRegularFile)
-                    .mapToLong(p -> {
-                        try {
-                            return Files.size(p);
-                        } catch (IOException e) {
-                            return 0;
-                        }
-                    })
-                    .sum();
-        }
-
         System.out.println(modLen);
         System.out.println(assetLen);
         settings = new JButton("Download Path Change");
@@ -71,27 +47,7 @@ public class LaunchMine extends JFrame {
         add(center, BorderLayout.EAST);
         Path path = Paths.get(destination + "\\.minecraft");
         if (Files.exists(path)) {
-            actButton.addActionListener(e -> {
-                String path1 = destination + "\\.minecraft\\launchers\\start_forge_1.16.5.bat\\";
-                if (modLen == 24815086) {
-                    if (assetLen == 334221916) {
-
-                        ProcessBuilder pb = new ProcessBuilder(path1);
-
-                        try {
-                            pb.start();
-                            System.exit(0);
-
-                        } catch (IOException a) {
-                            a.printStackTrace();
-                        }
-                    }
-                }else{
-                    JOptionPane.showMessageDialog(null,"delete all mods or custom assets from your minecraft folder or reinstall minecraft");
-
-                }
-
-            });
+            actButton.addActionListener(e -> checkAndLunch());
 
         } else {
             actButton.setText("download");
@@ -114,6 +70,50 @@ public class LaunchMine extends JFrame {
             }
         }
         folder.delete();
+    }
+
+    private void checkAndLunch(){
+
+        if (Files.exists(Paths.get(destination + "\\.minecraft"))) {
+            try {
+                this.modLen = Files.walk(Paths.get(destination, ".minecraft", "mods"))
+                        .filter(Files::isRegularFile)
+                        .mapToLong(p -> {
+                            try { return Files.size(p); }
+                            catch (IOException e) { return 0; }
+                        }).sum();
+
+                this.assetLen = Files.walk(Paths.get(destination, ".minecraft", "assets"))
+                        .filter(Files::isRegularFile)
+                        .mapToLong(p -> {
+                            try { return Files.size(p); }
+                            catch (IOException e) { return 0; }
+                        }).sum();
+
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+
+            System.out.println("modLen = " + modLen);
+            System.out.println("assetLen = " + assetLen);
+
+            if (modLen == 24815086 && assetLen == 334221916){
+                String bat = destination + "\\.minecraft\\launchers\\start_forge_1.16.5.bat";
+
+                try {
+                    new ProcessBuilder(bat).start();
+                    System.exit(0);
+
+                } catch (IOException a) {
+                    a.printStackTrace();
+                }
+
+            } else {
+                JOptionPane.showMessageDialog(this,
+                        "Delete custom mods or assets from .minecraft.");
+            }
+            }
+
     }
 
     public void pathServis() {
@@ -259,32 +259,7 @@ public class LaunchMine extends JFrame {
                 actButton.setText("Launch");
                 actButton.setEnabled(true);
 
-                actButton.addActionListener(e -> {
-                    String path = destination + "\\.minecraft\\launchers\\start_forge_1.16.5.bat\\";
-                    System.out.println(path);
-                    Path modpath;
-                    System.out.println(assetLen);
-                    System.out.println(modLen);
-                    if (modLen == 24815086) {
-                        if (assetLen == 334221916) {
-
-
-                            ProcessBuilder pb = new ProcessBuilder(path);
-
-                            try {
-                                pb.start();
-                                System.exit(0);
-
-                            } catch (IOException a) {
-                                a.printStackTrace();
-                            }
-                        }
-                    }else{
-                        JOptionPane.showMessageDialog(null,"delete all mods or custom assets from your minecraft folder");
-                    }
-
-                });
-
+                actButton.addActionListener(e -> checkAndLunch());
             }
 
 
