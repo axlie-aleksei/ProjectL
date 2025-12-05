@@ -59,7 +59,11 @@ public class AuthService {
             return "wrong password";
         }
 
-        return jwtService.generateToken(username);
+        if (encoder.matches(password, pass.getPassword())) {
+            jwtService.generateToken(username);
+        }
+
+        return "succesfully logged in";
 
     }
 
