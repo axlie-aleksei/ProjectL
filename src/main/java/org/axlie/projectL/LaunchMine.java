@@ -9,18 +9,16 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.Locale;
 import java.util.prefs.Preferences;
 
 import net.lingala.zip4j.ZipFile;
-import net.lingala.zip4j.model.FileHeader;
 
 public class LaunchMine extends JFrame {
 
     private final JButton settings;
     private final JButton actButton;
     private final JProgressBar progBar;
-    String destination = System.getenv("APPDATA");
+    String destination;
     private long modLen;
     private long assetLen;
 
@@ -111,6 +109,17 @@ public class LaunchMine extends JFrame {
             } else {
                 JOptionPane.showMessageDialog(this,
                         "Delete custom mods or assets from .minecraft.");
+                int result = JOptionPane.showConfirmDialog(
+                        null,
+                        "do you want to reinstall mine craft? (your saves will be lost)",
+                        "Confirmation",
+                        JOptionPane.YES_NO_OPTION
+                );
+                if (result == JOptionPane.YES_OPTION){
+                    buttonDo();
+                }else {
+                    JOptionPane.showMessageDialog(this, "clear your modifications");
+                }
             }
             }
 
@@ -147,9 +156,7 @@ public class LaunchMine extends JFrame {
                 }
 
                 actButton.setText("Download");
-                actButton.addActionListener(e -> {
-                    buttonDo();
-                });
+                actButton.addActionListener(e -> buttonDo());
                 JOptionPane.showMessageDialog(this, "path changed now you can download it again");
 
             }
@@ -174,6 +181,7 @@ public class LaunchMine extends JFrame {
                 try {
                     Files.delete(oldMine);
                 } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
         }
