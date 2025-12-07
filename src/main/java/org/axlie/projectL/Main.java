@@ -1,5 +1,7 @@
 package org.axlie.projectL;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import net.lingala.zip4j.ZipFile;
 
 import javax.swing.*;
@@ -9,10 +11,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.URLEncoder;
+import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -28,6 +27,7 @@ public class Main extends JFrame {
     private JTextField usernameField;
     private JPasswordField passwordField;
     private JLabel statusLabel;
+    JCheckBox rememberMeCheck;
     // luncher ui
 
     // Цветовые константы для стилизации
@@ -87,9 +87,11 @@ public class Main extends JFrame {
         }
     }
         // data
+        Preferences prefs = Preferences.userRoot().node("AxlieProjectL");
         private String destination;
         private long modLen;
         private long assetLen;
+        String token = prefs.get("authToken", null);
 
         public Main() {
             setTitle("Pixel Gate");
@@ -117,7 +119,15 @@ public class Main extends JFrame {
             rootPanel.add(createLoginScreen(), "login");
             rootPanel.add(createLauncherScreen(), "launcher");
 
-            layout.show(rootPanel, "login");
+            //token memory
+            String token = prefs.get("authToken", null);
+            System.out.println(token);
+            if (token != null && validateToken(token)) {
+                layout.show(rootPanel, "launcher");
+            } else {
+                handleLogout();
+            }
+
         }
 
         private JPanel createLoginScreen() {
@@ -230,7 +240,13 @@ public class Main extends JFrame {
             JButton registerBtn = new AuthClientFrame.OvalButton("Register", mainFont, new Color(0, 200, 83), new Color(0, 150, 56));
             registerBtn.setPreferredSize(new Dimension(110, 38));
             registerBtn.addActionListener(this::handleRegister);
+            rememberMeCheck = new JCheckBox("remember me");
+            rememberMeCheck.setForeground(Color.WHITE);
+            c.gridx = 1;
+            c.gridy = 5;
+            c.gridwidth = 2;
 
+            formPanel.add(rememberMeCheck, c);
             buttonsPanel.add(loginBtn);
             buttonsPanel.add(registerBtn);
 
@@ -316,6 +332,10 @@ public class Main extends JFrame {
 
             launcherPanel.add(bottomPanel, BorderLayout.SOUTH);
 
+            CustomButton logoutButton = new CustomButton("Logout", new Color(200, 50, 50), new Color(255, 80, 80));
+            logoutButton.addActionListener(e -> handleLogout());
+            buttonPanel.add(logoutButton);
+
             return launcherPanel;
         }
 
@@ -374,10 +394,33 @@ public class Main extends JFrame {
             }
         }
 
-        private String sendPost(String urlStr, String username, String password) {
+        private String sendToken(String urlStr, String token){
+            try{
+                String fullUrl = urlStr + "?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8);
+                URL url = new URL(fullUrl);
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("POST");
+                conn.setDoOutput(true);
+                BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                String response = in.readLine();
+                in.close();
+                return response;
+
+            } catch (IOException e) {
+                return "connection error";
+            }
+        }
+
+    private boolean validateToken(String token) {
+        String response = sendToken("http://localhost:8080/api/validate", token);
+        return "success".equals(response);
+    }
+
+        private String sendPost(String urlStr, String username, String password, boolean rememberMe) {
             try {
                 String fullUrl = urlStr + "?username=" + URLEncoder.encode(username, StandardCharsets.UTF_8)
-                        + "&password=" + URLEncoder.encode(password, StandardCharsets.UTF_8);
+                        + "&password=" + URLEncoder.encode(password, StandardCharsets.UTF_8)
+                        + "&rememberMe=" + rememberMe;
                 URL url = new URL(fullUrl);
                 HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("POST");
@@ -390,30 +433,62 @@ public class Main extends JFrame {
             }
         }
 
+    private String sendPostReg(String urlStr, String username, String password) {
+        try {
+            String fullUrl = urlStr + "?username=" + URLEncoder.encode(username, StandardCharsets.UTF_8)
+                    + "&password=" + URLEncoder.encode(password, StandardCharsets.UTF_8);
+            URL url = new URL(fullUrl);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("POST");
+            BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+            String response = in.readLine();
+            in.close();
+            return response;
+        } catch (IOException e) {
+            return "Connection error";
+        }
+    }
+
         private void handleRegister(ActionEvent e) {
             String username = usernameField.getText();
             String password = new String(passwordField.getPassword());
-            statusLabel.setText(sendPost("http://localhost:8080/api/registration", username, password));
+
+            statusLabel.setText(sendPostReg("http://localhost:8080/api/registration", username, password));
         }
 
     private void handleLogin(ActionEvent e) {
         String username = usernameField.getText();
         String password = new String(passwordField.getPassword());
-        String response = sendPost("http://localhost:8080/api/login", username, password);
+        boolean rememberMe = rememberMeCheck.isSelected();
+        String response = sendPost("http://localhost:8080/api/login", username, password, rememberMe);
 
-        statusLabel.setText(response);
-        System.out.println(response);
+        JsonObject json = new Gson().fromJson(response, JsonObject.class);
+        if (json.get("status").getAsString().equals("success")) {
+            String token = json.get("token").getAsString();
+            Preferences prefs = Preferences.userRoot().node("AxlieProjectL");
+            prefs.put("authToken", token);
+            prefs.put("savedUsername", username);
 
-        // Проверка успешного логина
-        if (response != null && response.toLowerCase().contains("succesfully logged in")) {
-
-            // Переключение на лаунчер
-            SwingUtilities.invokeLater(() -> {
-                layout.show(rootPanel, "launcher");
-                rootPanel.revalidate();
-                rootPanel.repaint();
-            });
+            layout.show(rootPanel, "launcher");
         }
+        statusLabel.setText(response);
+    }
+    //logout method
+    private void handleLogout() {
+        // token delete
+        Preferences prefs = Preferences.userRoot().node("AxlieProjectL");
+        prefs.remove("authToken");
+        prefs.remove("savedUsername");
+
+        layout.show(rootPanel, "login");
+
+        // clear fields
+        usernameField.setText("");
+        passwordField.setText("");
+        rememberMeCheck.setSelected(false);
+
+        // messege for user
+        statusLabel.setText("Logged out successfully");
     }
 
         //launcher methods
