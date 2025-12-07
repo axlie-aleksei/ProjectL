@@ -203,7 +203,7 @@ public class LaunchMine extends JFrame {
         }
     }
 
-    // ... (Методы delFolder, checkAndLunch, pathServis, buttonDo и main остаются без изменений)
+    // ... (Методы delFolder,checkAndLunch, pathServis, buttonDo и main остаются без изменений)
     // Эти методы не содержат логики дизайна, поэтому их можно оставить как в предыдущем варианте.
 
     public static void delFolder(File folder) {
