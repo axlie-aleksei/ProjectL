@@ -15,7 +15,7 @@ import java.util.Date;
 public class JwtService {
     private final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
 
-    private static final long TOKEN_EXPIRATION_SHORT = 1; //12 hours
+    private static final long TOKEN_EXPIRATION_SHORT = 12 * 60 * 60 * 1000; //12 hours
     private static final long TOKEN_EXPIRATION_LONG = 7 * 24 * 60 * 60 * 1000;// 7 days
 
     public String generateToken(String username, boolean longExpiration) {
