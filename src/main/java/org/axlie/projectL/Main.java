@@ -6,16 +6,11 @@ import net.lingala.zip4j.ZipFile;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.util.List;
 import java.util.prefs.Preferences;
 
@@ -33,16 +28,16 @@ public class Main extends JFrame {
     // Цветовые константы для стилизации
     private static final Color BG_DARK = new Color(20, 20, 30, 230);
     private static final Color ACCENT_BLUE = new Color(70, 130, 180);
-    private static final Color ACCENT_GREEN = new Color(60, 179, 113);
+    private static final Color ACCENT_RED = new Color(250, 3, 32);
 
     private JPanel launcherPanel;
     private CustomButton settings;
     private CustomButton actButton;
     private JProgressBar progBar;
 
-    // Класс для кастомных стилизованных кнопок
-    private static class CustomButton extends JButton {
 
+
+    private static class CustomButton extends JButton {
         private Color base;
         private Color hover;
         private Color current;
@@ -78,10 +73,8 @@ public class Main extends JFrame {
         protected void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
             g2.setColor(current);
             g2.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
-
             g2.dispose();
             super.paintComponent(g);
         }
@@ -93,18 +86,18 @@ public class Main extends JFrame {
         private long assetLen;
         String token = prefs.get("authToken", null);
 
-        public Main() {
-            setTitle("Pixel Gate");
-            setSize(850, 500);
-            setDefaultCloseOperation(EXIT_ON_CLOSE);
-            setLocationRelativeTo(null);
+    public Main() {
+        setTitle("Pixel Gate");
+        setSize(850, 500);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
 
-            try {
-                Image iconImage = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/icon.png"));
-                setIconImage(iconImage);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
+        try {
+            Image iconImage = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/icon.png"));
+            setIconImage(iconImage);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
             //path memory
             Preferences prefs = Preferences.userRoot().node("AxlieProjectL");
@@ -130,112 +123,111 @@ public class Main extends JFrame {
 
         }
 
-        private JPanel createLoginScreen() {
-            JPanel bgPanel = new JPanel() {
-                Image bg = new ImageIcon(getClass().getResource("/GIF.gif")).getImage();
+    private JPanel createLoginScreen() {
+        JPanel bgPanel = new JPanel() {
+            Image bg = new ImageIcon(getClass().getResource("/GIF.gif")).getImage();
 
-                @Override
-                protected void paintComponent(Graphics g) {
-                    super.paintComponent(g);
-                    g.drawImage(bg, 0, 0, getWidth(), getHeight(), this);
-                }
-            };
-            bgPanel.setLayout(new BorderLayout());
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                g.drawImage(bg, 0, 0, getWidth(), getHeight(), this);
+            }
+        };
+        bgPanel.setLayout(new BorderLayout());
 
-            JPanel formPanel = new JPanel(new GridBagLayout()) {
-                @Override
-                protected void paintComponent(Graphics g) {
-                    Graphics2D g2 = (Graphics2D) g.create();
-                    g2.setColor(new Color(30, 30, 30, 180));
-                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
-                    g2.dispose();
-                    super.paintComponent(g);
-                }
-            };
-            formPanel.setOpaque(false);
-            formPanel.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
+        JPanel formPanel = new JPanel(new GridBagLayout()) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setColor(new Color(30, 30, 30, 180));
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        formPanel.setOpaque(false);
+        formPanel.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
 
-            GridBagConstraints c = new GridBagConstraints();
-            c.insets = new Insets(6, 6, 6, 6);
-            c.fill = GridBagConstraints.HORIZONTAL;
-            c.anchor = GridBagConstraints.NORTHEAST;
+        GridBagConstraints c = new GridBagConstraints();
+        c.insets = new Insets(6, 6, 6, 6);
+        c.fill = GridBagConstraints.HORIZONTAL;
 
-            Font titleFont = new Font("Minecraft Rus", Font.BOLD, 20);
-            Font mainFont = new Font("Minecraft Rus", Font.PLAIN, 13);
+        Font titleFont = new Font("Minecraft Rus", Font.BOLD, 20);
+        Font mainFont = new Font("Minecraft Rus", Font.PLAIN, 13);
 
-            JLabel title = new JLabel("Login / Register", SwingConstants.LEFT);
-            title.setFont(titleFont);
-            title.setForeground(Color.WHITE);
-            c.gridx = 0;
-            c.gridy = 0;
-            c.gridwidth = 2;
-            formPanel.add(title, c);
-            c.gridwidth = 1;
+        JLabel title = new JLabel("Login / Register", SwingConstants.LEFT);
+        title.setFont(titleFont);
+        title.setForeground(Color.WHITE);
+        c.gridx = 0;
+        c.gridy = 0;
+        c.gridwidth = 2;
+        formPanel.add(title, c);
+        c.gridwidth = 1;
 
-            JLabel usernameLabel = new JLabel("Username:");
-            usernameLabel.setForeground(Color.WHITE);
-            usernameLabel.setFont(mainFont);
-            c.gridx = 0;
-            c.gridy = 1;
-            formPanel.add(usernameLabel, c);
+        JLabel usernameLabel = new JLabel("Username:");
+        usernameLabel.setForeground(Color.WHITE);
+        usernameLabel.setFont(mainFont);
+        c.gridx = 0;
+        c.gridy = 1;
+        formPanel.add(usernameLabel, c);
 
-            usernameField = new JTextField();
-            styleField(usernameField, mainFont);
-            usernameField.setOpaque(true);
-            c.gridx = 0;
-            c.gridy = 2;
-            c.gridwidth = 2;
-            formPanel.add(usernameField, c);
-            c.gridwidth = 1;
+        usernameField = new JTextField();
+        styleField(usernameField, mainFont);
+        usernameField.setOpaque(true);
+        c.gridx = 0;
+        c.gridy = 2;
+        c.gridwidth = 2;
+        formPanel.add(usernameField, c);
+        c.gridwidth = 1;
 
-            JLabel passwordLabel = new JLabel("Password:");
-            passwordLabel.setForeground(Color.WHITE);
-            passwordLabel.setFont(mainFont);
-            c.gridx = 0;
-            c.gridy = 3;
-            formPanel.add(passwordLabel, c);
+        JLabel passwordLabel = new JLabel("Password:");
+        passwordLabel.setForeground(Color.WHITE);
+        passwordLabel.setFont(mainFont);
+        c.gridx = 0;
+        c.gridy = 3;
+        formPanel.add(passwordLabel, c);
 
-            passwordField = new JPasswordField();
-            styleField(passwordField, mainFont);
-            passwordField.setOpaque(true);
-            c.gridx = 0;
-            c.gridy = 4;
-            c.gridwidth = 2;
-            formPanel.add(passwordField, c);
-            c.gridwidth = 1;
+        passwordField = new JPasswordField();
+        styleField(passwordField, mainFont);
+        passwordField.setOpaque(true);
+        c.gridx = 0;
+        c.gridy = 4;
+        c.gridwidth = 2;
+        formPanel.add(passwordField, c);
+        c.gridwidth = 1;
 
-            JButton showBtn = new JButton();
-            showBtn.setPreferredSize(new Dimension(30, 22));
-            showBtn.setFocusPainted(false);
-            showBtn.setContentAreaFilled(false);
-            showBtn.setBorder(null);
-            showBtn.setForeground(Color.WHITE);
+        JButton showBtn = new JButton();
+        showBtn.setPreferredSize(new Dimension(30, 22));
+        showBtn.setFocusPainted(false);
+        showBtn.setContentAreaFilled(false);
+        showBtn.setBorder(null);
+        showBtn.setForeground(Color.WHITE);
 
-            ImageIcon eyeOpen = new ImageIcon(getClass().getResource("/eye_open.png"));
-            ImageIcon eyeClosed = new ImageIcon(getClass().getResource("/eye_closed.png"));
-            showBtn.setIcon(eyeClosed);
+        ImageIcon eyeOpen = new ImageIcon(getClass().getResource("/eye_open.png"));
+        ImageIcon eyeClosed = new ImageIcon(getClass().getResource("/eye_closed.png"));
+        showBtn.setIcon(eyeClosed);
 
-            showBtn.addActionListener(ev -> {
-                if (passwordField.getEchoChar() == '•') {
-                    passwordField.setEchoChar((char) 0);
-                    showBtn.setIcon(eyeOpen);
-                } else {
-                    passwordField.setEchoChar('•');
-                    showBtn.setIcon(eyeClosed);
-                }
-            });
+        showBtn.addActionListener(ev -> {
+            if (passwordField.getEchoChar() == '•') {
+                passwordField.setEchoChar((char) 0);
+                showBtn.setIcon(eyeOpen);
+            } else {
+                passwordField.setEchoChar('•');
+                showBtn.setIcon(eyeClosed);
+            }
+        });
 
-            c.gridx = 2;
-            c.gridy = 4;
-            formPanel.add(showBtn, c);
+        c.gridx = 2;
+        c.gridy = 4;
+        formPanel.add(showBtn, c);
 
-            JPanel buttonsPanel = new JPanel();
-            buttonsPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 8, 0));
-            buttonsPanel.setOpaque(false);
+        JPanel buttonsPanel = new JPanel();
+        buttonsPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        buttonsPanel.setOpaque(false);
 
-            JButton loginBtn = new AuthClientFrame.OvalButton("Login", mainFont, new Color(0, 122, 255), new Color(0, 79, 246));
-            loginBtn.setPreferredSize(new Dimension(110, 38));
-            loginBtn.addActionListener(this::handleLogin);
+        JButton loginBtn = new OvalButton("Login", mainFont, new Color(0, 122, 255), new Color(0, 79, 246));
+        loginBtn.setPreferredSize(new Dimension(110, 38));
+        loginBtn.addActionListener(this::handleLogin);
 
             JButton registerBtn = new AuthClientFrame.OvalButton("Register", mainFont, new Color(0, 200, 83), new Color(0, 150, 56));
             registerBtn.setPreferredSize(new Dimension(110, 38));
@@ -250,87 +242,82 @@ public class Main extends JFrame {
             buttonsPanel.add(loginBtn);
             buttonsPanel.add(registerBtn);
 
-            c.gridx = 0;
-            c.gridy = 5;
-            c.gridwidth = 2;
-            formPanel.add(buttonsPanel, c);
-            c.gridwidth = 1;
+        c.gridx = 0;
+        c.gridy = 5;
+        c.gridwidth = 2;
+        formPanel.add(buttonsPanel, c);
+        c.gridwidth = 1;
 
-            statusLabel = new JLabel(" ", SwingConstants.LEFT);
-            statusLabel.setForeground(Color.WHITE);
-            statusLabel.setFont(mainFont);
-            c.gridx = 0;
-            c.gridy = 6;
-            c.gridwidth = 2;
-            formPanel.add(statusLabel, c);
+        statusLabel = new JLabel(" ", SwingConstants.LEFT);
+        statusLabel.setForeground(Color.WHITE);
+        statusLabel.setFont(mainFont);
+        c.gridx = 0;
+        c.gridy = 6;
+        c.gridwidth = 2;
+        formPanel.add(statusLabel, c);
 
-            bgPanel.add(formPanel, BorderLayout.EAST);
-            return bgPanel;
+        bgPanel.add(formPanel, BorderLayout.EAST);
+        return bgPanel;
+    }
+    private JPanel createLauncherScreen() {
+        launcherPanel = new JPanel(new BorderLayout()) {
+            Image bg = new ImageIcon(getClass().getResource("/GIF.gif")).getImage();
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                g.drawImage(bg, 0, 0, getWidth(), getHeight(), this);
+            }
+        };
+
+        // Нижняя полупрозрачная панель
+        JPanel bottomPanel = new JPanel(new BorderLayout()) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(BG_DARK);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 25, 25);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        bottomPanel.setOpaque(false);
+        bottomPanel.setPreferredSize(new Dimension(850, 120)); // уменьшили высоту
+        bottomPanel.setBorder(BorderFactory.createEmptyBorder(30, 0, 10, 0)); // сдвиг прогресса вниз
+
+        // Прогресс-бар
+        progBar = new JProgressBar(0, 100);
+        progBar.setStringPainted(true);
+        progBar.setFont(new Font("Arial", Font.BOLD, 14));
+        progBar.setPreferredSize(new Dimension(600, 30 )); // длиннее прогресс-бар
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        buttonPanel.setOpaque(false);
+
+        settings = new CustomButton("", ACCENT_BLUE, ACCENT_BLUE.brighter());
+        settings.setIcon(new ImageIcon(getClass().getResource("/settings.png")));
+        settings.setText(null);
+        settings.setBorder(null);
+        settings.setContentAreaFilled(false);
+        settings.setPreferredSize(new Dimension(40, 40));
+        settings.addActionListener(e -> pathServis());
+
+        Path mc = Paths.get(destination, ".minecraft");
+        if (Files.exists(mc)) {
+            actButton = new CustomButton("Play", ACCENT_RED, ACCENT_RED.brighter());
+            actButton.addActionListener(e -> checkAndLunch());
+        } else {
+            actButton = new CustomButton("Download", ACCENT_BLUE, ACCENT_BLUE.brighter());
+            actButton.addActionListener(e -> buttonDo());
         }
 
-        private JPanel createLauncherScreen() {
-            // launcherPanel с BorderLayout
-            launcherPanel = new JPanel(new BorderLayout()) {
-                Image bg = new ImageIcon(getClass().getResource("/GIF.gif")).getImage();
-                @Override
-                protected void paintComponent(Graphics g) {
-                    super.paintComponent(g);
-                    g.drawImage(bg, 0, 0, getWidth(), getHeight(), this);
-                }
-            };
+        buttonPanel.add(settings);
+        buttonPanel.add(actButton);
 
-            // Нижняя полупрозрачная панель
-            JPanel bottomPanel = new JPanel(new GridBagLayout()) {
-                @Override
-                protected void paintComponent(Graphics g) {
-                    Graphics2D g2 = (Graphics2D) g.create();
-                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                    g2.setColor(BG_DARK);
-                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 25, 25);
-                    g2.dispose();
-                    super.paintComponent(g);
-                }
-            };
-            bottomPanel.setOpaque(false);
-            bottomPanel.setPreferredSize(new Dimension(850, 160));
+        bottomPanel.add(buttonPanel, BorderLayout.WEST);
+        bottomPanel.add(progBar, BorderLayout.EAST); // прогресс-бар справа
 
-            GridBagConstraints c = new GridBagConstraints();
-            c.insets = new Insets(10, 20, 10, 20);
-            c.fill = GridBagConstraints.HORIZONTAL;
-
-            // Progress bar
-            progBar = new JProgressBar(0, 100);
-            progBar.setStringPainted(true);
-            progBar.setFont(new Font("Arial", Font.BOLD, 14));
-            c.gridx = 0;
-            c.gridy = 10;
-            c.gridwidth = 2;
-            bottomPanel.add(progBar, c);
-
-            // Buttons
-            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 5));
-            buttonPanel.setOpaque(false);
-
-            settings = new CustomButton("Path Change", ACCENT_BLUE, ACCENT_BLUE.brighter());
-            settings.addActionListener(e -> pathServis());
-
-            Path mc = Paths.get(destination, ".minecraft");
-            if (Files.exists(mc)) {
-                actButton = new CustomButton("Launch", ACCENT_GREEN, ACCENT_GREEN.brighter());
-                actButton.addActionListener(e -> checkAndLunch());
-            } else {
-                actButton = new CustomButton("Download", ACCENT_BLUE, ACCENT_BLUE.brighter());
-                actButton.addActionListener(e -> buttonDo());
-            }
-
-            buttonPanel.add(settings);
-            buttonPanel.add(actButton);
-
-            c.gridy = 1;
-            c.gridwidth = 2;
-            bottomPanel.add(buttonPanel, c);
-
-            launcherPanel.add(bottomPanel, BorderLayout.SOUTH);
+        launcherPanel.add(bottomPanel, BorderLayout.SOUTH);
 
             CustomButton logoutButton = new CustomButton("Logout", new Color(200, 50, 50), new Color(255, 80, 80));
             logoutButton.addActionListener(e -> handleLogout());
@@ -348,51 +335,51 @@ public class Main extends JFrame {
             if (field instanceof JPasswordField) ((JPasswordField) field).setEchoChar('•');
         }
 
-        private static class OvalButton extends JButton {
-            private final Color normalColor;
-            private final Color hoverColor;
+    private static class OvalButton extends JButton {
+        private final Color normalColor;
+        private final Color hoverColor;
 
-            public OvalButton(String text, Font font, Color normalColor, Color hoverColor) {
-                super(text);
-                setFont(font);
-                this.normalColor = normalColor;
-                this.hoverColor = hoverColor;
-                setForeground(Color.WHITE);
-                setFocusPainted(false);
-                setContentAreaFilled(false);
-                setBorderPainted(false);
-                setOpaque(false);
-                setCursor(new Cursor(Cursor.HAND_CURSOR));
+        public OvalButton(String text, Font font, Color normalColor, Color hoverColor) {
+            super(text);
+            setFont(font);
+            this.normalColor = normalColor;
+            this.hoverColor = hoverColor;
+            setForeground(Color.WHITE);
+            setFocusPainted(false);
+            setContentAreaFilled(false);
+            setBorderPainted(false);
+            setOpaque(false);
+            setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-                addMouseListener(new MouseAdapter() {
-                    @Override
-                    public void mouseEntered(MouseEvent e) {
-                        setBackground(hoverColor);
-                    }
+            addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseEntered(MouseEvent e) {
+                    setBackground(hoverColor);
+                }
 
-                    @Override
-                    public void mouseExited(MouseEvent e) {
-                        setBackground(normalColor);
-                    }
-                });
+                @Override
+                public void mouseExited(MouseEvent e) {
+                    setBackground(normalColor);
+                }
+            });
 
-                setBackground(normalColor);
-            }
-
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(getBackground());
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), getHeight(), getHeight());
-                super.paintComponent(g2);
-                g2.dispose();
-            }
-
-            @Override
-            public void paintBorder(Graphics g) {
-            }
+            setBackground(normalColor);
         }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(getBackground());
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), getHeight(), getHeight());
+            super.paintComponent(g2);
+            g2.dispose();
+        }
+
+        @Override
+        public void paintBorder(Graphics g) {
+        }
+    }
 
         private String sendToken(String urlStr, String token){
             try{
@@ -491,179 +478,71 @@ public class Main extends JFrame {
         statusLabel.setText("Logged out successfully");
     }
 
-        //launcher methods
-
-    // Переопределение updateActionButtonState для работы с CustomStyledButton
-    private void updateActionButtonState(String text, ActionListener action) {
-        // Удаляем старый actButton
-        Container parent = actButton.getParent();
-        if (parent != null) {
-            parent.remove(actButton);
-        }
-
-        // Создаем новый actButton с соответствующей стилизацией
-        if (text.equals("Launch")) {
-            actButton = new CustomButton(text, ACCENT_GREEN, ACCENT_GREEN.brighter());
-        } else {
-            actButton = new CustomButton(text, ACCENT_BLUE, ACCENT_BLUE.brighter());
-        }
-
-        actButton.addActionListener(action);
-        actButton.setEnabled(true);
-
-        // Добавляем новый actButton обратно на родительскую панель
-        if (parent != null) {
-            GridBagConstraints gbc = new GridBagConstraints();
-            gbc.insets = new Insets(10, 10, 10, 10);
-            gbc.gridx = 1;
-            gbc.gridy = 1;
-            parent.add(actButton, gbc);
-            parent.revalidate();
-            parent.repaint();
-        }
-    }
-
-    // ... (Методы delFolder,checkAndLunch, pathServis, buttonDo и main остаются без изменений)
-    // Эти методы не содержат логики дизайна, поэтому их можно оставить как в предыдущем варианте.
-
-    public static void delFolder(File folder) {
-        if (!folder.exists()) return;
-
-        File[] files = folder.listFiles();
-        if (files != null) {
-            for (File file : files) {
-                if (file.isDirectory()) {
-                    delFolder(file);
-                } else {
-                    file.delete();
-                }
-            }
-        }
-        folder.delete();
-    }
-
-    private void checkAndLunch(){
-        if (Files.exists(Paths.get(destination + "\\.minecraft"))) {
+    private void checkAndLunch() {
+        Path mc = Paths.get(destination, ".minecraft");
+        if (Files.exists(mc)) {
             try {
-                this.modLen = Files.walk(Paths.get(destination, ".minecraft", "mods"))
+                modLen = Files.walk(Paths.get(destination, ".minecraft", "mods"))
                         .filter(Files::isRegularFile)
                         .mapToLong(p -> {
-                            try { return Files.size(p); }
-                            catch (IOException e) { return 0; }
+                            try { return Files.size(p); } catch (IOException e) { return 0; }
                         }).sum();
-
-                this.assetLen = Files.walk(Paths.get(destination, ".minecraft", "assets"))
+                assetLen = Files.walk(Paths.get(destination, ".minecraft", "assets"))
                         .filter(Files::isRegularFile)
                         .mapToLong(p -> {
-                            try { return Files.size(p); }
-                            catch (IOException e) { return 0; }
+                            try { return Files.size(p); } catch (IOException e) { return 0; }
                         }).sum();
-
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
 
-            if (modLen == 24815086 && assetLen == 334221916){
+            if (modLen == 24815086 && assetLen == 334221916) {
                 String bat = destination + "\\.minecraft\\launchers\\start_forge_1.16.5.bat";
-
-                try {
-                    new ProcessBuilder(bat).start();
-                    System.exit(0);
-
-                } catch (IOException a) {
-                    a.printStackTrace();
-                }
-
+                try { new ProcessBuilder(bat).start(); System.exit(0); }
+                catch (IOException a) { a.printStackTrace(); }
             } else {
-                JOptionPane.showMessageDialog(this,
-                        "Delete custom mods or assets from .minecraft.");
-                int result = JOptionPane.showConfirmDialog(
-                        null,
+                JOptionPane.showMessageDialog(this, "Delete custom mods or assets from .minecraft.");
+                int result = JOptionPane.showConfirmDialog(null,
                         "do you want to reinstall mine craft? (your saves will be lost)",
-                        "Confirmation",
-                        JOptionPane.YES_NO_OPTION
-                );
-                if (result == JOptionPane.YES_OPTION){
-                    buttonDo();
-                }else {
-                    JOptionPane.showMessageDialog(this, "clear your modifications");
-                }
+                        "Confirmation", JOptionPane.YES_NO_OPTION);
+                if (result == JOptionPane.YES_OPTION) { buttonDo(); }
+                else { JOptionPane.showMessageDialog(this, "clear your modifications"); }
             }
         }
     }
 
-    public void pathServis() {
+    private void pathServis() {
         Path path = Paths.get(destination);
         if (Files.exists(path)) {
-            int result = JOptionPane.showConfirmDialog(
-                    null,
+            int result = JOptionPane.showConfirmDialog(null,
                     "Are you sure you want to change the Minecraft installation location? (Your saves will be lost.)",
-                    "Confirmation",
-                    JOptionPane.YES_NO_OPTION
-            );
+                    "Confirmation", JOptionPane.YES_NO_OPTION);
             if (result == JOptionPane.YES_OPTION) {
-                MainPane pane = new MainPane();
-                String newPath = pane.showDialog();
-
-                if (newPath == null || newPath.isEmpty()) {
-                    JOptionPane.showMessageDialog(this, "path not selected");
-                    return;
-                }
-
+                String newPath = new MainPane().showDialog();
+                if (newPath == null || newPath.isEmpty()) { JOptionPane.showMessageDialog(this, "path not selected"); return; }
                 String oldPath = destination;
                 destination = newPath;
                 File oldMine = new File(oldPath + "\\.minecraft");
-
                 Preferences prefs = Preferences.userRoot().node("AxlieProjectL");
                 prefs.put("minecraftPath", newPath);
-
-                if (oldMine.exists()) {
-                    delFolder(oldMine);
-                }
-
+                if (oldMine.exists()) { delFolder(oldMine); }
                 actButton.setText("Download");
                 actButton.addActionListener(e -> buttonDo());
                 JOptionPane.showMessageDialog(this, "path changed now you can download it again");
             }
-        } else {
-            MainPane pane = new MainPane();
-            String newPath = pane.showDialog();
-
-            if (newPath == null || newPath.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "path not selected");
-                return;
-            }
-
-            String oldPath = destination;
-            destination = newPath;
-            Path oldMine = Paths.get(oldPath + "\\.minecraft");
-
-            Preferences prefs = Preferences.userRoot().node("AxlieProjectL");
-            prefs.put("minecraftPath", newPath);
-
-            if (Files.exists(oldMine)) {
-                try {
-                    Files.delete(oldMine);
-                } catch (IOException e) {}
-            }
         }
     }
 
-    public void buttonDo() {
+    private void buttonDo() {
         actButton.setEnabled(false);
         progBar.setVisible(true);
 
         SwingWorker<Void, Integer> worker = new SwingWorker<>() {
-
             @Override
             protected Void doInBackground() throws IOException {
-                java.util.List<String> urls = java.util.List.of(
-                        "http://localhost:8080/docs/download/1"
-                );
-
+                List<String> urls = List.of("http://localhost:8080/docs/download/1");
                 Path outputDir = Paths.get(destination);
                 Files.createDirectories(outputDir);
-
                 int allFiles = urls.size();
                 int fileCount = 0;
 
@@ -706,9 +585,7 @@ public class Main extends JFrame {
                         }
                     }
                     Path mineZip = Paths.get(destination + "\\.minecraft.zip");
-                    if (fileName.toLowerCase().endsWith(".zip")) {
-                        Files.deleteIfExists(mineZip);
-                    }
+                    if (fileName.toLowerCase().endsWith(".zip")) { Files.deleteIfExists(mineZip); }
                 }
                 return null;
             }
@@ -721,7 +598,7 @@ public class Main extends JFrame {
             @Override
             protected void done() {
                 progBar.setValue(100);
-                actButton.setText("Launch");
+                actButton.setText("Play");
                 actButton.setEnabled(true);
 
                 actButton.addActionListener(e -> checkAndLunch());
@@ -730,8 +607,17 @@ public class Main extends JFrame {
         worker.execute();
     }
 
-        public static void main(String[] args) {
-            SwingUtilities.invokeLater(() -> new Main().setVisible(true));
+    public static void delFolder(File folder) {
+        if (!folder.exists()) return;
+        File[] files = folder.listFiles();
+        if (files != null) for (File file : files) {
+            if (file.isDirectory()) delFolder(file); else file.delete();
         }
+        folder.delete();
     }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new Main().setVisible(true));
+    }
+}
 
