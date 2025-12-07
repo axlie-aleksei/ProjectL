@@ -29,7 +29,7 @@ public class AuthClientFrame extends JFrame {
         }
 
         JPanel mainPanel = new JPanel() {
-            Image bg = new ImageIcon(getClass().getResource("/minecraft.png")).getImage();
+            Image bg = new ImageIcon(getClass().getResource("/GIF.gif")).getImage();
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
