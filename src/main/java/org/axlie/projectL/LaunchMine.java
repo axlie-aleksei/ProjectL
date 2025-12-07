@@ -30,7 +30,7 @@ public class LaunchMine extends JFrame {
     private long assetLen;
 
     // Класс для кастомных стилизованных кнопок
-    private static class CustomStyledButton extends JButton {
+    static class CustomStyledButton extends JButton {
         private Color baseColor;
         private Color hoverColor;
         private Color currentColor;

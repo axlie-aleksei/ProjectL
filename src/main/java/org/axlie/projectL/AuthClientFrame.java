@@ -24,8 +24,8 @@ public class AuthClientFrame extends JFrame {
         try {
             Image iconImage = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/icon.png"));
             setIconImage(iconImage);
-        } finally {
-
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
 
         JPanel mainPanel = new JPanel() {
@@ -166,7 +166,7 @@ public class AuthClientFrame extends JFrame {
         if (field instanceof JPasswordField) ((JPasswordField) field).setEchoChar('•');
     }
 
-    private static class OvalButton extends JButton {
+    static class OvalButton extends JButton {
         private final Color normalColor;
         private final Color hoverColor;
 
