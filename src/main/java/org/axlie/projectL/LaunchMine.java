@@ -80,33 +80,52 @@ public class LaunchMine extends JFrame {
         }
     }
 
-    private void updateActionButtonState(String text, ActionListener action, Color base, Color hover) {
-        for (ActionListener al : actButton.getActionListeners()) {
-            actButton.removeActionListener(al);
+    // Утилита — обновление/замена actButton в UI
+    private void updateActionButtonState(String text, ActionListener action) {
+        Container parent = (actButton != null) ? actButton.getParent() : null;
+
+        // Создаём новый actButton по тексту (цвета по смыслу)
+        CustomStyledButton newButton;
+        if ("Launch".equalsIgnoreCase(text)) {
+            newButton = new CustomStyledButton(text, ACCENT_GREEN, ACCENT_GREEN.brighter());
+        } else {
+            newButton = new CustomStyledButton(text, ACCENT_BLUE, ACCENT_BLUE.brighter());
+        }
+        newButton.addActionListener(action);
+        newButton.setEnabled(true);
+
+        // Если старый был, заменим в родителе
+        if (parent != null) {
+            // Найдём индекс старого и заменим
+            parent.remove(actButton);
+            parent.add(newButton);
+            parent.revalidate();
+            parent.repaint();
         }
 
-        // Обновление кнопок с новой стилизацией
-        actButton = new CustomStyledButton(text, base, hover);
-        actButton.addActionListener(action);
-        actButton.setEnabled(true);
-
-        // Перерисовка formPanel для обновления компоновки (если необходимо)
-        // В данном случае, actButton будет пересоздан и добавлен позже в конструкторе
+        actButton = newButton;
     }
 
     public LaunchMine() throws IOException {
         Preferences prefs = Preferences.userRoot().node("AxlieProjectL");
         destination = prefs.get("minecraftPath", System.getenv("APPDATA"));
 
-        setTitle("Axlie Project L");
+        setTitle("PixelGate");
         setSize(850, 500);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(false);
 
-        // Главная панель с фоновым изображением
-        JPanel mainPanel = new JPanel(new GridBagLayout()) { // Используем GridBagLayout для центрирования formPanel
-            Image bg = new ImageIcon(getClass().getResource("/minecraft.png")).getImage();
+        try {
+            Image iconImage = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/icon.png"));
+            setIconImage(iconImage);
+        } finally {
+            // ничего
+        }
+
+        // Главная панель с фоновым изображением (используем BorderLayout чтобы прижать formPanel в SOUTH)
+        JPanel mainPanel = new JPanel(new BorderLayout()) {
+            Image bg = new ImageIcon(getClass().getResource("/GIF.gif")).getImage();
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
@@ -115,7 +134,7 @@ public class LaunchMine extends JFrame {
         };
         setContentPane(mainPanel);
 
-        // Панель для формы (прозрачная, закругленная) - ВОЗВРАЩЕНА
+        // Полупрозрачная закруглённая панель, которая будет прижата в самый низ (SOUTH)
         JPanel formPanel = new JPanel(new GridBagLayout()) {
             @Override
             protected void paintComponent(Graphics g) {
@@ -127,14 +146,14 @@ public class LaunchMine extends JFrame {
                 super.paintComponent(g);
             }
         };
-        formPanel.setOpaque(false); // Непрозрачность контролируется paintComponent
-        formPanel.setPreferredSize(new Dimension(500, 150));
+        formPanel.setOpaque(false);
+        // Прижать форму в самый низ: делаем фиксированную высоту панели (например 160px)
+        formPanel.setPreferredSize(new Dimension(850, 160));
 
+        // Внутренние компоненты formPanel
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
-
-        // Инициализация компонентов с кастомной стилизацией
-        settings = new CustomStyledButton("Path Change", ACCENT_BLUE, ACCENT_BLUE.brighter());
+        gbc.insets = new Insets(10, 20, 10, 20);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
         progBar = new JProgressBar(0, 100);
         progBar.setStringPainted(true);
@@ -142,16 +161,8 @@ public class LaunchMine extends JFrame {
         progBar.setPreferredSize(new Dimension(250, 30));
         progBar.setFont(new Font("Arial", Font.BOLD, 14));
 
-        // Добавление компонентов на formPanel
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.gridwidth = 2;
-        formPanel.add(progBar, gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        gbc.gridwidth = 1;
-        formPanel.add(settings, gbc);
+        // Кнопки
+        settings = new CustomStyledButton("Path Change", ACCENT_BLUE, ACCENT_BLUE.brighter());
 
         // Логика определения начального состояния кнопки
         Path path = Paths.get(destination + "\\.minecraft");
@@ -163,48 +174,32 @@ public class LaunchMine extends JFrame {
             actButton.addActionListener(e -> buttonDo());
         }
 
-        gbc.gridx = 1;
-        gbc.gridy = 1;
-        formPanel.add(actButton, gbc);
+        // Разместим прогресс-бар сверху (в форме)
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        gbc.weightx = 1.0;
+        gbc.anchor = GridBagConstraints.NORTH;
+        formPanel.add(progBar, gbc);
 
-        // Добавление formPanel на mainPanel (центрирование)
-        mainPanel.add(formPanel, new GridBagConstraints());
+        // Создаём отдельную панель для кнопок (по центру), она будет внизу внутри formPanel
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 5));
+        buttonPanel.setOpaque(false);
+        buttonPanel.add(settings);
+        buttonPanel.add(actButton);
+
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 2;
+        gbc.weightx = 1.0;
+        gbc.anchor = GridBagConstraints.SOUTH;
+        formPanel.add(buttonPanel, gbc);
+
+        // Добавляем formPanel в самый низ mainPanel
+        mainPanel.add(formPanel, BorderLayout.SOUTH);
 
         settings.addActionListener(e -> pathServis());
     }
-
-    // Переопределение updateActionButtonState для работы с CustomStyledButton
-    private void updateActionButtonState(String text, ActionListener action) {
-        // Удаляем старый actButton
-        Container parent = actButton.getParent();
-        if (parent != null) {
-            parent.remove(actButton);
-        }
-
-        // Создаем новый actButton с соответствующей стилизацией
-        if (text.equals("Launch")) {
-            actButton = new CustomStyledButton(text, ACCENT_GREEN, ACCENT_GREEN.brighter());
-        } else {
-            actButton = new CustomStyledButton(text, ACCENT_BLUE, ACCENT_BLUE.brighter());
-        }
-
-        actButton.addActionListener(action);
-        actButton.setEnabled(true);
-
-        // Добавляем новый actButton обратно на родительскую панель
-        if (parent != null) {
-            GridBagConstraints gbc = new GridBagConstraints();
-            gbc.insets = new Insets(10, 10, 10, 10);
-            gbc.gridx = 1;
-            gbc.gridy = 1;
-            parent.add(actButton, gbc);
-            parent.revalidate();
-            parent.repaint();
-        }
-    }
-
-    // ... (Методы delFolder,checkAndLunch, pathServis, buttonDo и main остаются без изменений)
-    // Эти методы не содержат логики дизайна, поэтому их можно оставить как в предыдущем варианте.
 
     public static void delFolder(File folder) {
         if (!folder.exists()) return;
@@ -301,8 +296,8 @@ public class LaunchMine extends JFrame {
                     delFolder(oldMine);
                 }
 
-                actButton.setText("Download");
-                actButton.addActionListener(e -> buttonDo());
+                // корректно заменим кнопку
+                updateActionButtonState("Download", e -> buttonDo());
                 JOptionPane.showMessageDialog(this, "path changed now you can download it again");
             }
         } else {
@@ -357,7 +352,15 @@ public class LaunchMine extends JFrame {
                     String fileName = "";
 
                     if (disposition != null) {
-                        fileName = disposition.split("filename=")[1].replace("\"", "").trim();
+                        String[] parts = disposition.split("filename=");
+                        if (parts.length > 1) {
+                            fileName = parts[1].replace("\"", "").trim();
+                        }
+                    }
+
+                    if (fileName.isEmpty()) {
+                        // fallback
+                        fileName = "downloaded_" + fileCount + ".zip";
                     }
 
                     Path output = outputDir.resolve(fileName);
@@ -401,10 +404,8 @@ public class LaunchMine extends JFrame {
             @Override
             protected void done() {
                 progBar.setValue(100);
-                actButton.setText("Launch");
-                actButton.setEnabled(true);
-
-                actButton.addActionListener(e -> checkAndLunch());
+                // заменим кнопку на Launch
+                updateActionButtonState("Launch", e -> checkAndLunch());
             }
         };
         worker.execute();
