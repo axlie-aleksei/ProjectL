@@ -40,6 +40,7 @@ public class LaunchMine extends JFrame {
             this.baseColor = base;
             this.hoverColor = hover;
             this.currentColor = base;
+            
 
             setContentAreaFilled(false);
             setFocusPainted(false);
