@@ -37,34 +37,36 @@ public class AuthService {
         return "User registered successfully";
     }
 
-    public String login(String username, String password) {
+    public String login(String username, String password, boolean rememberMe) {
         Username user = usernameRepository.findAll()
                 .stream()
-                .filter(userr -> userr.getUsername().equals(username))
+                .filter(u -> u.getUsername().equals(username))
                 .findFirst()
                 .orElse(null);
+
         if (user == null) {
-            return "usernotfound"; //user not found
+            return "{ \"status\": \"error\", \"message\": \"User not found\" }";
         }
+
         Password pass = passwordRepository.findAll()
                 .stream()
-                .filter(paass -> paass.getUsername().equals(user))
+                .filter(p -> p.getUsername().equals(user))
                 .findFirst()
                 .orElse(null);
+
         if (pass == null) {
-            return "password not null"; //pass not found
+            return "{ \"status\": \"error\", \"message\": \"Password not found\" }";
         }
 
         if (!encoder.matches(password, pass.getPassword())) {
-            return "wrong password";
+            return "{ \"status\": \"error\", \"message\": \"Wrong password\" }";
         }
 
-        if (encoder.matches(password, pass.getPassword())) {
-            jwtService.generateToken(username);
-        }
+        String token = jwtService.generateToken(username, rememberMe);
 
-        return "succesfully logged in";
+        return "{ \"status\": \"success\", \"message\": \"Successfully logged in\", \"token\": \"" + token + "\" }";
+    }
 
     }
 
-}
+
