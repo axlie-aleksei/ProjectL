@@ -11,6 +11,7 @@ public class Password {
     private String password;
 
     @OneToOne
+    //oboznachaet v cacoi collonne forgin key
     @JoinColumn(name = "username_id")
     private Username username;
 

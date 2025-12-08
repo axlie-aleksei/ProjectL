@@ -17,7 +17,7 @@ public class AuthService {
         this.usernameRepository = usernameRepository;
         this.jwtService = jwtService;
     }
-
+    //method for register
     public String registration(String username, String password) {
         if (usernameRepository.findAll().stream().anyMatch(user -> user.getUsername().equals(username))) {
             return "Username is already in use";
@@ -26,9 +26,9 @@ public class AuthService {
         Username user = new Username(username);
         user.setUsername(username);
         usernameRepository.save(user);
-
+        //heshiruem password
         String hashedPassword = encoder.encode(password);
-
+        //create new entity password
         Password pass = new Password();
         pass.setUsername(user);
         pass.setPassword(hashedPassword);
@@ -36,19 +36,21 @@ public class AuthService {
 
         return "User registered successfully";
     }
-
+    //login method
     public String login(String username, String password, boolean rememberMe) {
         Username user = usernameRepository.findAll()
+                //otkrivaem potok filtruem cherez sravnenie username naxodim pervoe sovpadenie
                 .stream()
                 .filter(u -> u.getUsername().equals(username))
                 .findFirst()
                 .orElse(null);
-
+        //esli user null vozrashaem json status error
         if (user == null) {
             return "{ \"status\": \"error\", \"message\": \"User not found\" }";
         }
 
         Password pass = passwordRepository.findAll()
+                //otkrivaem potok filtruem passwor na sovpadenie user naxodim pervoe i sravnivaem
                 .stream()
                 .filter(p -> p.getUsername().equals(user))
                 .findFirst()
@@ -57,11 +59,11 @@ public class AuthService {
         if (pass == null) {
             return "{ \"status\": \"error\", \"message\": \"Password not found\" }";
         }
-
+        //esli passwor is incorrect status error
         if (!encoder.matches(password, pass.getPassword())) {
             return "{ \"status\": \"error\", \"message\": \"Wrong password\" }";
         }
-
+        //generiruem token and return json
         String token = jwtService.generateToken(username, rememberMe);
 
         return "{ \"status\": \"success\", \"message\": \"Successfully logged in\", \"token\": \"" + token + "\" }";

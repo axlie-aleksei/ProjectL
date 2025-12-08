@@ -36,6 +36,7 @@ public class AuthController {
     }
 
     @PostMapping("/validate")
+    //zaprashivaem token
     public String validate(@RequestParam String token) {
         String tokenn = jwtService.validateToken(token);
         if (tokenn.equals("token expired") || tokenn.equals("token invalid")) {

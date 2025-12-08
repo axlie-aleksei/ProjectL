@@ -10,7 +10,8 @@ public class Username {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     private String username;
-
+    //one to one is odin user have one password, mapped by ukazivaet chto vladelec svjazi in entity password
+    //cascade ucazivaet chto vse operations for user primenjautsja k password
     @OneToOne(mappedBy = "username", cascade = CascadeType.ALL)
     private Password password;
 

@@ -23,6 +23,7 @@ public class DocController {
 
     @PostMapping("/upload")
     public ResponseEntity<?> uploadDoc( @RequestParam("file") MultipartFile file) throws IOException {
+        //create new entity document
         Document doc = new Document();
         doc.setMimeType(file.getContentType());
         doc.setName(file.getOriginalFilename());
@@ -32,9 +33,12 @@ public class DocController {
     }
 
     @GetMapping("/download/{id}")
+    //response entity pozvoljaet return content disposition intputstreamresource is stream of data (our file)
     public ResponseEntity<InputStreamResource> downloadDoc(@PathVariable Long id) throws IOException {
+        //from docrepository we take name and other data from docstore we take sam file
         Document doc = docRepository.findById(id).orElseThrow();
         Resource resource = docStore.getResource(doc);
+        //returning data of file and file
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(doc.getMimeType()))
                 .header("Content-Disposition", "attachment; filename=\"" +

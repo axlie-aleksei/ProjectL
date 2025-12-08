@@ -19,13 +19,13 @@ public class Document implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
-
+    //id soderzimogo file
     @ContentId
     private UUID contentId;
-
+    //dlina file
     @ContentLength
     private Long contentLength;
-
+    //type of file
     @MimeType
     private String mimeType;
 
