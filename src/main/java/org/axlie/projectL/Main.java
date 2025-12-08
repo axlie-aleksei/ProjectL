@@ -9,7 +9,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.net.*;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.List;
 import java.util.prefs.Preferences;
@@ -20,11 +19,11 @@ public class Main extends JFrame {
     private CardLayout layout;
     private JPanel rootPanel;
     // auth ui
+    private final AuthService authService = new AuthService();
     private JTextField usernameField;
     private JPasswordField passwordField;
     private JLabel statusLabel;
     JCheckBox rememberMeCheck;
-    // luncher ui
 
     //change coment tima
     // Цветовые константы для стилизации
@@ -97,7 +96,7 @@ public class Main extends JFrame {
         setLocationRelativeTo(null);
         //set ico
         try {
-            Image iconImage = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/icon.png"));
+            Image iconImage = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/resourceRoot/icon.png"));
             setIconImage(iconImage);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -131,7 +130,7 @@ public class Main extends JFrame {
     //frame login
     private JPanel createLoginScreen() {
         JPanel bgPanel = new JPanel() {
-            Image bg = new ImageIcon(getClass().getResource("/GIF.gif")).getImage();
+            Image bg = new ImageIcon(getClass().getResource("/resourceRoot/GIF.gif")).getImage();
 
             //tima comment
             @Override
@@ -210,8 +209,8 @@ public class Main extends JFrame {
         showBtn.setBorder(null);
         showBtn.setForeground(Color.WHITE);
 
-        ImageIcon eyeOpen = new ImageIcon(getClass().getResource("/eye_open.png"));
-        ImageIcon eyeClosed = new ImageIcon(getClass().getResource("/eye_closed.png"));
+        ImageIcon eyeOpen = new ImageIcon(getClass().getResource("/resourceRoot/eye_open.png"));
+        ImageIcon eyeClosed = new ImageIcon(getClass().getResource("/resourceRoot/eye_closed.png"));
         showBtn.setIcon(eyeClosed);
 
         showBtn.addActionListener(ev -> {
@@ -237,7 +236,7 @@ public class Main extends JFrame {
         //call method handle login
         loginBtn.addActionListener(this::handleLogin);
 
-        JButton registerBtn = new AuthClientFrame.OvalButton("Register", mainFont, new Color(0, 200, 83), new Color(0, 150, 56));
+        JButton registerBtn = new OvalButton("Register", mainFont, new Color(0, 200, 83), new Color(0, 150, 56));
         registerBtn.setPreferredSize(new Dimension(110, 38));
         //call method register
         registerBtn.addActionListener(this::handleRegister);
@@ -273,7 +272,7 @@ public class Main extends JFrame {
     private JPanel createLauncherScreen() {
         //bordearlayout is basic fomating layout commands EAST WEST and other
         launcherPanel = new JPanel(new BorderLayout()) {
-            Image bg = new ImageIcon(getClass().getResource("/GIF.gif")).getImage();
+            Image bg = new ImageIcon(getClass().getResource("/resourceRoot/GIF.gif")).getImage();
 
             @Override
             protected void paintComponent(Graphics g) {
@@ -309,7 +308,7 @@ public class Main extends JFrame {
         buttonPanel.setOpaque(false);
         //same
         settings = new CustomButton("", ACCENT_BLUE, ACCENT_BLUE.brighter());
-        settings.setIcon(new ImageIcon(getClass().getResource("/settings.png")));
+        settings.setIcon(new ImageIcon(getClass().getResource("/resourceRoot/settings.png")));
         settings.setText(null);
         settings.setBorder(null);
         settings.setContentAreaFilled(false);
@@ -402,72 +401,12 @@ public class Main extends JFrame {
     }
 
     //this method do post  method for validation the token
-    private String sendToken(String urlStr, String token) {
-        try {
-            //sobiraem url
-            String fullUrl = urlStr + "?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8);
-            URL url = new URL(fullUrl);
-            //open network connection
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            //chosing method
-            conn.setRequestMethod("POST");
-            //mi sobiraemsja send data to url
-            conn.setDoOutput(true);
-            //getinputstream is for get stream of bites from server aka response
-            //inputstreamreader convert bytes to text
-            //buffer reader do chtenie more udobnim
-            BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-            //readline speeds the process by reading big parts of buffer
-            String response = in.readLine();
-            //closing buffer reader
-            in.close();
-            return response;
 
-        } catch (IOException e) {
-            return "connection error";
-        }
-    }
 
     //methor for validathing token by sravnenie otveta s servera
     private boolean validateToken(String token) {
-        String response = sendToken("http://localhost:8080/api/validate", token);
+        String response = authService.sendToken("http://localhost:8080/api/validate", token);
         return "success".equals(response);
-    }
-
-    //same as send token
-    private String sendPost(String urlStr, String username, String password, boolean rememberMe) {
-        try {
-            String fullUrl = urlStr + "?username=" + URLEncoder.encode(username, StandardCharsets.UTF_8)
-                    + "&password=" + URLEncoder.encode(password, StandardCharsets.UTF_8)
-                    + "&rememberMe=" + rememberMe;
-            URL url = new URL(fullUrl);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("POST");
-            conn.setDoOutput(true);
-            BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-            String response = in.readLine();
-            in.close();
-            return response;
-        } catch (IOException e) {
-            return "Connection error";
-        }
-    }
-
-    //same as send token razdelenie sdelano tk v send post est boolean remember me
-    private String sendPostReg(String urlStr, String username, String password) {
-        try {
-            String fullUrl = urlStr + "?username=" + URLEncoder.encode(username, StandardCharsets.UTF_8)
-                    + "&password=" + URLEncoder.encode(password, StandardCharsets.UTF_8);
-            URL url = new URL(fullUrl);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("POST");
-            BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-            String response = in.readLine();
-            in.close();
-            return response;
-        } catch (IOException e) {
-            return "Connection error";
-        }
     }
 
     //method dlja regisration
@@ -475,7 +414,7 @@ public class Main extends JFrame {
         String username = usernameField.getText();
         String password = new String(passwordField.getPassword());
 
-        statusLabel.setText(sendPostReg("http://localhost:8080/api/registration", username, password));
+        statusLabel.setText(authService.sendPostReg("http://localhost:8080/api/registration", username, password));
     }
 
     //method dlja login
@@ -484,7 +423,7 @@ public class Main extends JFrame {
         String password = new String(passwordField.getPassword());
         //ispolzuetsa dva vida tokena 12 hours and 7 days for auto log in and if remeber me is selected we get 7 days token
         boolean rememberMe = rememberMeCheck.isSelected();
-        String response = sendPost("http://localhost:8080/api/login", username, password, rememberMe);
+        String response = authService.sendPost("http://localhost:8080/api/login", username, password, rememberMe);
         //na servere response v vide json object dlja poluchenia tokena otdelno
         JsonObject json = new Gson().fromJson(response, JsonObject.class);
         //proverka na to chto status is succes
