@@ -26,7 +26,9 @@ public class MainPane extends JPanel {
             // file list
             JList list = findFirstChildren(fileChooser, JList.class);
             list.addListSelectionListener(e -> {
+                //proverka na vibor
                 if (!e.getValueIsAdjusting()) {
+                    //poluchaem vibranoe znachenie i esli ono ne ravno null poluchaem path
                     File file = (File) list.getSelectedValue();
                     if (file != null) {
                         resultPath = file.getAbsolutePath();
@@ -74,6 +76,7 @@ public class MainPane extends JPanel {
         }
 
         //buttons delete
+        //tut tak i ne ponjal chto proishodit(code frome stackoverflow)
         protected void removeButtons(Container container) {
             for (Component child : container.getComponents()) {
                 if (child instanceof JButton btn) {
@@ -88,7 +91,7 @@ public class MainPane extends JPanel {
                 }
             }
         }
-
+        //sdelal pometci uze ne pomny 8.12.25
         // recursive search T = Inside the comp component, find the first child element of type T
         public <T extends Component> T findFirstChildren(JComponent comp, Class<T> clazz) {
             for (Component c : comp.getComponents()) {
