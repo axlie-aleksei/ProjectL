@@ -309,6 +309,7 @@ public class Main extends JFrame {
         //call method handle login
         loginBtn.addActionListener(this::handleLogin);
 
+        //закруглённая кнопка рушистрации, шрифт,цвет и цвет при наведении
         JButton registerBtn = new OvalButton("Register", mainFont, new Color(0, 200, 83), new Color(0, 150, 56));
         registerBtn.setPreferredSize(new Dimension(110, 38));
         //call method register
