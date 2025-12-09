@@ -26,10 +26,11 @@ public class Main extends JFrame {
     JCheckBox rememberMeCheck;
     // luncher ui
 
-    //change coment tima
-    // Цветовые константы для стилизации
+    // создаёт полупрощрачный фон
     private static final Color BG_DARK = new Color(20, 20, 30, 230);
+    // салает цвет кнопкам
     private static final Color ACCENT_BLUE = new Color(70, 130, 180);
+    // салает цвет кнопкам
     private static final Color ACCENT_RED = new Color(250, 3, 32);
     //launch frame frame and buttons
     private JPanel launcherPanel;
@@ -39,47 +40,63 @@ public class Main extends JFrame {
 
 
     // tima coment
+    // класс для созлания дизайна кнопки (закруглённые углы, эфект при наведении)
     private static class CustomButton extends JButton {
+        // обычный цвет кнопки
         private Color base;
+        // цвет при навелении
         private Color hover;
+        // цвет опять стоновится оьычным после ухода курсора
         private Color current;
 
+        //кнопки с тектом и цветами
         public CustomButton(String text, Color base, Color hover) {
+            //пердаёт текст в JButton
             super(text);
+            //сохраняет обычный цвет
             this.base = base;
+            //сщхраняет цвет при наведении
             this.hover = hover;
+            //сохраняет оьычный цвет после ухода курсора
             this.current = base;
 
             setContentAreaFilled(false);
-            setFocusPainted(false);
+            setFocusPainted(false);// убирает рамку при наведении
+           //цвет шрифта на кнопке
             setForeground(Color.WHITE);
+            //шрифт и размер текста
             setFont(new Font("Arial", Font.BOLD, 16));
+            //размер кнопки
             setPreferredSize(new Dimension(150, 40));
 
+            //курсор при напевединии на кнопку применяеться hover
             addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseEntered(MouseEvent e) {
+                    //меняет цвет на hover
                     current = hover;
                     repaint();
                 }
 
                 @Override
                 public void mouseExited(MouseEvent e) {
+                    //при уходе крсора возвращаеться обысный текст
                     current = base;
                     repaint();
                 }
             });
         }
-
         @Override
-        protected void paintComponent(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2.setColor(current);
-            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
+        protected void paintComponent(Graphics g) { // перерисовка кнопки
+            Graphics2D g2 = (Graphics2D) g.create(); // создаём Graphics2D для  графики
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON); // сглаживание краёв
+            g2.setColor(current);                  // используем текущий цвет (обычный или hover)
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15); // рисуем прямоугольник с закруглёнными углами
             g2.dispose();
             super.paintComponent(g);
         }
+
+
     }
 
     // data
@@ -91,16 +108,22 @@ public class Main extends JFrame {
 
     //constructor for frames
     public Main() {
+        //название окна
         setTitle("Pixel Gate");
+        //размер окна
         setSize(850, 500);
+        //закрытие окна завершает программу
         setDefaultCloseOperation(EXIT_ON_CLOSE);
+        // оено по серелине экрана
         setLocationRelativeTo(null);
         //set ico
         try {
+            //загруэает иконку из ресурсов
             Image iconImage = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/icon.png"));
+            // вставляет иконку для окна
             setIconImage(iconImage);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+
         }
 
         //path memory
@@ -129,41 +152,56 @@ public class Main extends JFrame {
     }
 
     //frame login
+    //панель для логина
     private JPanel createLoginScreen() {
+        //панель с картинкой
         JPanel bgPanel = new JPanel() {
+            //вставляет гифку из ресурсов как задний фок
             Image bg = new ImageIcon(getClass().getResource("/GIF.gif")).getImage();
 
             //tima comment
             @Override
+            // метод для растягивания изобрадения на всё окно(ширина и высота)
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 g.drawImage(bg, 0, 0, getWidth(), getHeight(), this);
             }
         };
+        //метод для размещения деталей
         bgPanel.setLayout(new BorderLayout());
-        //tima comment
+
+        //полыпрозрачная панель
         JPanel formPanel = new JPanel(new GridBagLayout()) {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
+                //делаем полупрозрачный тёмный цвет фона
                 g2.setColor(new Color(30, 30, 30, 180));
+                //прямоегольник с закрушлёнными краями
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
                 g2.dispose();
                 super.paintComponent(g);
             }
         };
+        // делает панель прозрачной чтобы видеть фоновое изображение
         formPanel.setOpaque(false);
+        //внутрение поля по 12 пикселей со всех сторон
         formPanel.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
-
+        // метод для настройки располодения и размера деталей
         GridBagConstraints c = new GridBagConstraints();
+        //отступы меэжу деталей 6 пикселей
         c.insets = new Insets(6, 6, 6, 6);
+        //детали растягиваються по ширене
         c.fill = GridBagConstraints.HORIZONTAL;
-
+        //шрифт для заголовка
         Font titleFont = new Font("Minecraft Rus", Font.BOLD, 20);
+        //шрифт для остальных деталей
         Font mainFont = new Font("Minecraft Rus", Font.PLAIN, 13);
-
+        //заголовок, по левому краю
         JLabel title = new JLabel("Login / Register", SwingConstants.LEFT);
+        //применяем шрифт к заголовку
         title.setFont(titleFont);
+        //цвет текста
         title.setForeground(Color.WHITE);
         c.gridx = 0;
         c.gridy = 0;
@@ -171,68 +209,103 @@ public class Main extends JFrame {
         formPanel.add(title, c);
         c.gridwidth = 1;
 
+        //создаёться заголовок Username
         JLabel usernameLabel = new JLabel("Username:");
+        //цвет текста
         usernameLabel.setForeground(Color.WHITE);
+        //шрифт
         usernameLabel.setFont(mainFont);
+        //позиция текста
         c.gridx = 0;
         c.gridy = 1;
         formPanel.add(usernameLabel, c);
 
+        //поле для текста, ввод username
         usernameField = new JTextField();
+        //делаем стиль для поля, шрифт и цвет текста
         styleField(usernameField, mainFont);
+        //поле для ввода не прозрачное
         usernameField.setOpaque(true);
+        //позиция поля для текста
         c.gridx = 0;
         c.gridy = 2;
         c.gridwidth = 2;
+        //размещает поле для текста на панель
         formPanel.add(usernameField, c);
         c.gridwidth = 1;
 
+        //создаём заголовок Password
         JLabel passwordLabel = new JLabel("Password:");
+        //текст текста
         passwordLabel.setForeground(Color.WHITE);
+        //шрифт
         passwordLabel.setFont(mainFont);
+        //позиция текста
         c.gridx = 0;
         c.gridy = 3;
         formPanel.add(passwordLabel, c);
 
+        //создаём поле для ввода пароля
         passwordField = new JPasswordField();
+        //делаем стиль, цвет и шрифт
         styleField(passwordField, mainFont);
+        //поле для ввода не прозрачное
         passwordField.setOpaque(true);
+        //позиция поля для ввода
         c.gridx = 0;
         c.gridy = 4;
         c.gridwidth = 2;
+        //добавление поля для ввода пароля на панель
         formPanel.add(passwordField, c);
         c.gridwidth = 1;
 
+        //создаём кнопку для просмотра и скрытия пароля
         JButton showBtn = new JButton();
+        //размер кнопки
         showBtn.setPreferredSize(new Dimension(30, 22));
-        showBtn.setFocusPainted(false);
+        //уьираем заполнение кнопки, чтобы потом использовать иконку
         showBtn.setContentAreaFilled(false);
+        //убираем рамку кнопки
         showBtn.setBorder(null);
-        showBtn.setForeground(Color.WHITE);
 
+        //добавляем иконку открытого глаза из ресурсов
         ImageIcon eyeOpen = new ImageIcon(getClass().getResource("/eye_open.png"));
+        //добавляем иконку закрытого глаза из ресурсов
         ImageIcon eyeClosed = new ImageIcon(getClass().getResource("/eye_closed.png"));
+        //иконка при запуске закртый глаз для скрытия пароля
         showBtn.setIcon(eyeClosed);
 
+        //проверка клика по кнопке показать пароль
         showBtn.addActionListener(ev -> {
+            //проверка скрыт ли пароль,если скрыт отображаеться '•'
             if (passwordField.getEchoChar() == '•') {
+                //делаем пароль видимым
                 passwordField.setEchoChar((char) 0);
+                //меняем иконку на открытый шлах
                 showBtn.setIcon(eyeOpen);
             } else {
+                //опять скрывем пароль
                 passwordField.setEchoChar('•');
+                //иконку меняем на закрытый глаз
                 showBtn.setIcon(eyeClosed);
             }
         });
-
+        //позтцтонирование иконки
         c.gridx = 2;
         c.gridy = 4;
+        //добавление иконки на панель
         formPanel.add(showBtn, c);
 
+        //добавляем панель для кнопок
         JPanel buttonsPanel = new JPanel();
+        //всё распологаеться слева
         buttonsPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        //делаем панель прозрачной
         buttonsPanel.setOpaque(false);
 
+        //создаём кнопку логин с шрифтом и со сменой цвета
         JButton loginBtn = new OvalButton("Login", mainFont, new Color(0, 122, 255), new Color(0, 79, 246));
+        //размер кнопки
         loginBtn.setPreferredSize(new Dimension(110, 38));
         //call method handle login
         loginBtn.addActionListener(this::handleLogin);
@@ -241,27 +314,34 @@ public class Main extends JFrame {
         registerBtn.setPreferredSize(new Dimension(110, 38));
         //call method register
         registerBtn.addActionListener(this::handleRegister);
-        rememberMeCheck = new JCheckBox("remember me");
+        rememberMeCheck = new JCheckBox("Remember me");
+        rememberMeCheck.setFocusPainted(false);
+        rememberMeCheck.setOpaque(false);
         rememberMeCheck.setForeground(Color.WHITE);
-        c.gridx = 1;
-        c.gridy = 5;
-        c.gridwidth = 2;
+        rememberMeCheck.setFont(mainFont);
+        rememberMeCheck.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        formPanel.add(rememberMeCheck, c);
         buttonsPanel.add(loginBtn);
         buttonsPanel.add(registerBtn);
+
 
         c.gridx = 0;
         c.gridy = 5;
         c.gridwidth = 2;
         formPanel.add(buttonsPanel, c);
-        c.gridwidth = 1;
+
+
+        c.gridx = 0;
+        c.gridy = 6;
+        c.gridwidth = 2;
+        formPanel.add(rememberMeCheck, c);
+
 
         statusLabel = new JLabel(" ", SwingConstants.LEFT);
         statusLabel.setForeground(Color.WHITE);
         statusLabel.setFont(mainFont);
         c.gridx = 0;
-        c.gridy = 6;
+        c.gridy = 9;
         c.gridwidth = 2;
         formPanel.add(statusLabel, c);
 
@@ -303,7 +383,7 @@ public class Main extends JFrame {
         progBar.setStringPainted(true);
         //tima comment
         progBar.setFont(new Font("Arial", Font.BOLD, 14));
-        progBar.setPreferredSize(new Dimension(600, 30)); // длиннее прогресс-бар
+        progBar.setPreferredSize(new Dimension(600, 40)); // длиннее прогресс-бар
         //same
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         buttonPanel.setOpaque(false);
@@ -313,7 +393,7 @@ public class Main extends JFrame {
         settings.setText(null);
         settings.setBorder(null);
         settings.setContentAreaFilled(false);
-        settings.setPreferredSize(new Dimension(40, 40));
+        settings.setPreferredSize(new Dimension(40, 35));
         //vizivaem pathservis method
         settings.addActionListener(e -> pathServis());
         //zadaem path to minecraft and do check for est li folder minecraft and if est set button play and call method for launch mine else download
@@ -325,18 +405,38 @@ public class Main extends JFrame {
             actButton = new CustomButton("Download", ACCENT_BLUE, ACCENT_BLUE.brighter());
             actButton.addActionListener(e -> buttonDo());
         }
-        //tima comment
-        buttonPanel.add(settings);
-        buttonPanel.add(actButton);
+
+
+
 
         bottomPanel.add(buttonPanel, BorderLayout.WEST);
         bottomPanel.add(progBar, BorderLayout.EAST); // прогресс-бар справа
 
         launcherPanel.add(bottomPanel, BorderLayout.SOUTH);
         //add logout button to log out from account
-        CustomButton logoutButton = new CustomButton("Logout", new Color(200, 50, 50), new Color(255, 80, 80));
+        CustomButton logoutButton = new CustomButton("", ACCENT_RED, ACCENT_RED.brighter());
+        logoutButton.setIcon(new ImageIcon(getClass().getResource("/logout.png")));
+        logoutButton.setText(null);
+        logoutButton.setBorder(null);
+        logoutButton.setContentAreaFilled(false);
+        logoutButton.setPreferredSize(new Dimension(40, 40));
         logoutButton.addActionListener(e -> handleLogout());
         buttonPanel.add(logoutButton);
+
+        //tima comment
+        // panel dlja settings + logout v odnoi kolone
+        JPanel sideButtons = new JPanel();
+        sideButtons.setOpaque(false);
+        sideButtons.setLayout(new BoxLayout(sideButtons, BoxLayout.Y_AXIS));
+        // settings sverhu
+        sideButtons.add(settings);
+        sideButtons.add(Box.createVerticalStrut(5)); // otstup
+        // logout snizu
+        sideButtons.add(logoutButton);
+        // dobavlyaem kolonku v levuju storonu
+        buttonPanel.add(sideButtons);
+        buttonPanel.add(actButton);
+
 
         return launcherPanel;
     }
